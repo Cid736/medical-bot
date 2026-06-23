@@ -1,7 +1,7 @@
 {
-  "name": "dental-bot",
+  "name": "medical-bot",
   "version": "1.0.0",
-  "description": "WhatsApp bot para clínicas dentales",
+  "description": "Bot para centros médicos",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

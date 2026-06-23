@@ -1,10 +1,10 @@
 ================================================================================
-                    RESUMEN DEL DENTAL BOT - PROYECTO COMPLETO
+                    RESUMEN DEL MEDICAL BOT - PROYECTO COMPLETO
 ================================================================================
 
 🎯 DESCRIPCIÓN GENERAL
 ================================================================================
-Bot de Telegram para capturar leads en clínicas dentales con IA automática 
+Bot de Telegram para capturar leads en centros médicos con IA automática
 (Google Gemini) para responder consultas, gestionar citas y guardar datos de 
 pacientes en base de datos SQLite.
 

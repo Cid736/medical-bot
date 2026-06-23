@@ -1,5 +1,5 @@
 const Database = require('better-sqlite3');
-const db = new Database('dental_bot.db');
+const db = new Database('medical_bot.db');
 const { encrypt, decrypt } = require('./services/crypto');
 
 db.exec(`
