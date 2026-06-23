@@ -1,0 +1,33 @@
+# Credenciales y configuración local
+.env
+
+# Dependencias
+node_modules/
+
+# Base de datos local
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Sesiones de WhatsApp (contienen tokens de sesión)
+sessions/
+.wwebjs_auth/
+.wwebjs_cache/
+
+# QR codes (imágenes locales)
+qr/*.png
+qr/*.jpg
+
+# QR codes generados
+public/qr/*.png
+public/qr/*.jpg
+
+# Configuración local de Claude Code
+.claude/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db

@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centre Mèdic Esplugues — Panel de gestión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0f2844; --navy-l: #1a3a5c;
+      --blue:       #1d6fa4; --blue-l: #e8f4fc;
+      --teal:       #0891b2; --purple: #7c3aed;
+      --bg:         #eef2f7; --card:   #ffffff;
+      --text:       #1a2b3c; --muted:  #64748b;
+      --border:     #e2e8f0;
+      --ok:  #059669; --ok-bg:  #d1fae5;
+      --warn:#d97706; --warn-bg:#fef3c7;
+      --err: #dc2626; --err-bg: #fee2e2;
+      --info:#2563eb; --info-bg:#dbeafe;
+      --sh:  0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+      --sh2: 0 4px 16px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+    }
+
+    body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; font-size:14px; line-height:1.5; }
+
+    /* ─── LOGIN OVERLAY ─────────────────────────────────────────────────── */
+    #loginScreen {
+      position:fixed; inset:0; z-index:9000;
+      background:var(--navy);
+      display:flex; align-items:center; justify-content:center;
+    }
+    #loginScreen.hidden { display:none; }
+
+    .login-box {
+      background:#fff; border-radius:16px; padding:40px 36px;
+      width:100%; max-width:380px;
+      box-shadow:0 24px 64px rgba(0,0,0,.35);
+    }
+    .login-logo { font-size:32px; text-align:center; margin-bottom:12px; }
+    .login-title { font-size:18px; font-weight:700; text-align:center; color:var(--navy); margin-bottom:4px; }
+    .login-sub   { font-size:12px; color:var(--muted); text-align:center; margin-bottom:28px; }
+    .login-label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px; }
+    .login-inp {
+      width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:9px;
+      font-family:inherit; font-size:14px; color:var(--text); outline:none;
+      transition:border-color .15s,box-shadow .15s; margin-bottom:14px;
+    }
+    .login-inp:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(29,111,164,.12); }
+    .login-btn {
+      width:100%; padding:11px; background:var(--navy); color:#fff;
+      border:none; border-radius:9px; font-family:inherit; font-size:14px;
+      font-weight:600; cursor:pointer; transition:background .15s;
+    }
+    .login-btn:hover { background:var(--navy-l); }
+    #loginErr { font-size:12.5px; color:var(--err); text-align:center; margin-top:12px; min-height:18px; }
+
+    /* ─── HEADER ────────────────────────────────────────────────────────── */
+    .header {
+      background:var(--navy); height:56px; padding:0 24px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:200;
+      box-shadow:0 2px 12px rgba(0,0,0,.25);
+    }
+    .brand { display:flex; align-items:center; gap:11px; }
+    .brand-logo { width:36px; height:36px; background:linear-gradient(135deg,#0369a1,var(--teal)); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .brand-name { font-size:14px; font-weight:700; color:#fff; letter-spacing:-.01em; }
+    .brand-tag  { font-size:9.5px; color:rgba(255,255,255,.35); letter-spacing:.06em; text-transform:uppercase; }
+    .hdr-right  { display:flex; align-items:center; gap:12px; }
+    .bot-pill   { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:4px 11px; color:rgba(255,255,255,.75); font-size:12px; font-weight:500; }
+    .dot-live   { width:7px; height:7px; border-radius:50%; background:#4ade80; animation:blink 2s infinite; }
+    @keyframes blink { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}50%{box-shadow:0 0 0 5px rgba(74,222,128,0)} }
+    .hdr-user   { font-size:12px; color:rgba(255,255,255,.55); }
+    .hdr-logout { background:rgba(255,255,255,.1); border:none; color:rgba(255,255,255,.6); font-size:11.5px; padding:4px 10px; border-radius:7px; cursor:pointer; }
+    .hdr-logout:hover { background:rgba(255,255,255,.18); color:#fff; }
+
+    /* ─── TABS ──────────────────────────────────────────────────────────── */
+    .tabs-bar { background:var(--navy); border-top:1px solid rgba(255,255,255,.07); display:flex; padding:0 24px; overflow-x:auto; }
+    .tab-btn  { padding:9px 16px; font-size:12.5px; font-weight:500; color:rgba(255,255,255,.42); border:none; border-bottom:2px solid transparent; background:transparent; cursor:pointer; white-space:nowrap; transition:all .15s; }
+    .tab-btn:hover { color:rgba(255,255,255,.7); }
+    .tab-btn.active { color:#fff; border-bottom-color:var(--teal); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* ─── CONTAINER ─────────────────────────────────────────────────────── */
+    .container { max-width:1440px; margin:0 auto; padding:22px 22px 40px; }
+    .page-title { font-size:19px; font-weight:700; color:var(--text); letter-spacing:-.02em; }
+    .page-sub   { font-size:12.5px; color:var(--muted); margin-top:2px; margin-bottom:20px; }
+
+    /* ─── KPI ───────────────────────────────────────────────────────────── */
+    .kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:20px; }
+    @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+    .kpi { background:var(--card); border-radius:11px; padding:16px 18px 14px; box-shadow:var(--sh); border:1px solid var(--border); position:relative; overflow:hidden; }
+    .kpi::after { content:''; position:absolute; bottom:0; left:0; width:100%; height:3px; border-radius:0 0 11px 11px; }
+    .kpi-navy::after{background:var(--navy)} .kpi-ok::after{background:var(--ok)} .kpi-warn::after{background:var(--warn)}
+    .kpi-teal::after{background:var(--teal)} .kpi-pur::after{background:var(--purple)} .kpi-blue::after{background:var(--blue)}
+    .kpi-icon { font-size:18px; margin-bottom:9px; display:block; }
+    .kpi-val  { font-size:26px; font-weight:700; color:var(--text); line-height:1; letter-spacing:-.02em; }
+    .kpi-lbl  { font-size:10.5px; font-weight:500; color:var(--muted); margin-top:5px; text-transform:uppercase; letter-spacing:.04em; }
+
+    /* ─── LAYOUT ────────────────────────────────────────────────────────── */
+    .layout { display:grid; grid-template-columns:1fr 300px; gap:16px; align-items:start; }
+    @media(max-width:1024px){.layout{grid-template-columns:1fr}}
+
+    /* ─── CARD ──────────────────────────────────────────────────────────── */
+    .card { background:var(--card); border-radius:11px; border:1px solid var(--border); box-shadow:var(--sh); overflow:hidden; }
+    .card-head { padding:13px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:#fafbfc; }
+    .card-title { font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    .card-acts  { display:flex; align-items:center; gap:8px; }
+
+    /* ─── TOOLBAR ───────────────────────────────────────────────────────── */
+    .toolbar { padding:10px 18px; border-bottom:1px solid var(--border); display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .srch { flex:1; min-width:160px; padding:7px 12px 7px 30px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text); background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%2394a3b8' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 9px center; outline:none; transition:border-color .15s; }
+    .srch:focus { border-color:var(--blue); }
+    .sel { padding:7px 9px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text); background:white; outline:none; cursor:pointer; }
+
+    /* ─── BUTTONS ───────────────────────────────────────────────────────── */
+    .btn { display:inline-flex; align-items:center; gap:5px; padding:6px 13px; border-radius:8px; font-family:inherit; font-size:12px; font-weight:500; cursor:pointer; border:none; white-space:nowrap; transition:filter .15s,background .15s; }
+    .btn-outline { background:transparent; color:var(--blue); border:1px solid var(--blue); }
+    .btn-outline:hover { background:var(--blue-l); }
+    .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
+    .btn-ghost:hover { background:var(--bg); }
+    .btn-primary { background:var(--blue); color:#fff; }
+    .btn-primary:hover { filter:brightness(.92); }
+    .btn-danger { background:var(--err); color:#fff; }
+    .btn-danger:hover { filter:brightness(.9); }
+    .btn-ok { background:var(--ok); color:#fff; }
+    .btn-ok:hover { filter:brightness(.92); }
+    .btn-rf { background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:15px; padding:4px 6px; border-radius:6px; transition:all .15s; line-height:1; }
+    .btn-rf:hover { color:var(--blue); background:var(--blue-l); }
+
+    /* ─── TABLE ─────────────────────────────────────────────────────────── */
+    .tw { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { background:#f8fafc; }
+    th { padding:9px 14px; text-align:left; font-size:10.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); white-space:nowrap; }
+    td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover { background:#f8fbff; }
+    tbody tr { cursor:pointer; }
+    .tn  { font-weight:600; font-size:13.5px; }
+    .tc  { font-family:'Courier New',monospace; font-size:10.5px; color:var(--muted); background:var(--bg); padding:2px 6px; border-radius:4px; display:inline-block; margin-top:2px; }
+    .ts  { font-size:11.5px; color:var(--muted); margin-top:2px; }
+    .tdp { font-size:12px; font-weight:500; color:var(--text); }
+    .tdi { font-size:12px; font-family:monospace; color:var(--muted); }
+
+    /* ─── BADGE ─────────────────────────────────────────────────────────── */
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+    .b-pen { background:var(--warn-bg); color:#92400e; }
+    .b-con { background:var(--ok-bg);   color:#065f46; }
+    .b-rej { background:var(--err-bg);  color:#991b1b; }
+    .b-cto { background:var(--info-bg); color:#1e40af; }
+
+    /* ─── ACTION BUTTONS ─────────────────────────────────────────────────── */
+    .acts { display:flex; gap:3px; align-items:center; }
+    .act  { width:27px; height:27px; border-radius:7px; border:1px solid var(--border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12.5px; transition:all .15s; flex-shrink:0; }
+    .act:hover { border-color:transparent; }
+    .a-ok:hover  { background:var(--ok-bg);   border-color:var(--ok);   }
+    .a-no:hover  { background:var(--err-bg);  border-color:var(--err);  }
+    .a-tel:hover { background:var(--info-bg); border-color:var(--info); }
+    .a-nt:hover  { background:var(--warn-bg); border-color:var(--warn); }
+    .a-del:hover { background:var(--err-bg);  border-color:var(--err);  }
+
+    /* ─── SIDEBAR ────────────────────────────────────────────────────────── */
+    .sside { display:flex; flex-direction:column; gap:14px; }
+    .svc-body { padding:14px 18px; }
+    .svc-row { margin-bottom:13px; }
+    .svc-row:last-child { margin-bottom:0; }
+    .svc-meta { display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
+    .svc-nm { font-weight:500; } .svc-cnt { color:var(--muted); }
+    .bar-bg { background:var(--bg); border-radius:5px; height:6px; overflow:hidden; }
+    .bar    { background:linear-gradient(90deg,var(--blue),var(--teal)); height:100%; border-radius:5px; transition:width .7s ease; }
+    .ml { padding:0 18px; }
+    .mi { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+    .mi:last-child { border-bottom:none; }
+    .ml-v { font-weight:600; }
+
+    /* Proximas citas */
+    .prox-body { padding:4px 18px 14px; }
+    .prox-item { display:flex; gap:9px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+    .prox-item:last-child { border-bottom:none; }
+    .prox-dot  { width:7px; height:7px; border-radius:50%; background:var(--warn); margin-top:4px; flex-shrink:0; }
+    .prox-dot.c{ background:var(--ok); }
+    .prox-info { flex:1; min-width:0; }
+    .prox-n    { font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .prox-s    { font-size:11px; color:var(--muted); }
+    .prox-d    { font-size:10.5px; color:var(--blue); font-weight:500; margin-top:1px; }
+
+    /* ─── EMPTY ─────────────────────────────────────────────────────────── */
+    .empty { text-align:center; padding:44px 20px; color:var(--muted); }
+    .ei { font-size:34px; margin-bottom:10px; opacity:.7; }
+
+    /* ─── TOAST ─────────────────────────────────────────────────────────── */
+    #toasts { position:fixed; bottom:22px; right:22px; z-index:9998; display:flex; flex-direction:column; gap:7px; }
+    .toast { background:var(--navy); color:#fff; padding:10px 16px; border-radius:9px; font-size:13px; font-weight:500; box-shadow:var(--sh2); min-width:200px; max-width:300px; border-left:4px solid; animation:tIn .2s ease; }
+    .t-ok { border-color:var(--ok); } .t-err{ border-color:var(--err); } .t-info{ border-color:var(--blue); }
+    @keyframes tIn { from{transform:translateY(8px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    /* ─── OVERLAY / MODAL ───────────────────────────────────────────────── */
+    .ov { display:none; position:fixed; inset:0; background:rgba(15,40,68,.55); z-index:1000; align-items:center; justify-content:center; padding:16px; }
+    .ov.open { display:flex; }
+    .modal { background:#fff; border-radius:13px; padding:26px; max-width:420px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,.2); }
+    .modal h3 { font-size:15px; font-weight:700; margin-bottom:5px; }
+    .modal p  { font-size:13px; color:var(--muted); margin-bottom:18px; line-height:1.6; }
+    .mf { display:flex; gap:9px; justify-content:flex-end; }
+    .modal textarea { width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text); resize:vertical; min-height:88px; margin-bottom:14px; outline:none; transition:border-color .15s; }
+    .modal textarea:focus { border-color:var(--blue); }
+    .inp { width:100%; padding:8px 11px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text); outline:none; transition:border-color .15s; margin-bottom:9px; }
+    .inp:focus { border-color:var(--blue); }
+    .inp-lbl { font-size:10.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; display:block; }
+
+    /* ─── FICHA PANEL ───────────────────────────────────────────────────── */
+    .ficha-ov { display:none; position:fixed; inset:0; background:rgba(15,40,68,.45); z-index:900; }
+    .ficha-ov.open { display:block; }
+    .ficha-panel {
+      position:fixed; top:0; right:0; bottom:0; width:420px;
+      background:#fff; box-shadow:-8px 0 40px rgba(0,0,0,.16);
+      display:flex; flex-direction:column; z-index:901; overflow:hidden;
+      transform:translateX(100%); transition:transform .25s cubic-bezier(.4,0,.2,1);
+    }
+    .ficha-ov.open .ficha-panel { transform:translateX(0); }
+    @media(max-width:480px){.ficha-panel{width:100vw}}
+    .ficha-hdr { background:var(--navy); padding:18px 20px 14px; flex-shrink:0; position:relative; }
+    .ficha-x { position:absolute; top:14px; right:14px; background:rgba(255,255,255,.12); border:none; color:#fff; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+    .ficha-x:hover { background:rgba(255,255,255,.22); }
+    .ficha-code  { font-size:10.5px; font-family:monospace; color:rgba(255,255,255,.45); letter-spacing:.05em; margin-bottom:3px; }
+    .ficha-name  { font-size:16px; font-weight:700; color:#fff; letter-spacing:-.01em; }
+    .ficha-badge { display:inline-flex; margin-top:7px; padding:3px 9px; border-radius:20px; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+    .fb-pen { background:rgba(217,119,6,.25); color:#fde68a; }
+    .fb-con { background:rgba(5,150,105,.25);  color:#6ee7b7; }
+    .fb-rej { background:rgba(220,38,38,.25);  color:#fca5a5; }
+    .fb-cto { background:rgba(37,99,235,.25);  color:#93c5fd; }
+
+    .ficha-body { flex:1; overflow-y:auto; }
+    .fsec { padding:15px 20px 0; }
+    .fsec-t { font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; padding-bottom:8px; border-bottom:1px solid var(--border); margin-bottom:11px; }
+    .frow { display:flex; align-items:flex-start; gap:0; margin-bottom:9px; }
+    .fl { font-size:10.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; min-width:100px; padding-top:2px; flex-shrink:0; }
+    .fv { font-size:13px; font-weight:500; color:var(--text); flex:1; }
+    .fv.acc { color:var(--navy); font-weight:600; }
+    .ficha-sel { width:100%; padding:7px 9px; border:1px solid var(--border); border-radius:7px; font-family:inherit; font-size:13px; color:var(--text); outline:none; cursor:pointer; }
+    .ficha-sel:focus { border-color:var(--blue); }
+    .fnotes { font-size:12.5px; background:var(--bg); padding:9px 11px; border-radius:7px; line-height:1.5; min-height:46px; white-space:pre-wrap; }
+    .fni { color:var(--muted); font-style:italic; }
+
+    .ficha-ft { padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:7px; flex-wrap:wrap; flex-shrink:0; }
+    .ficha-ft .btn-ok:disabled, .ficha-ft .btn-danger:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* ─── PROFESSIONALS ─────────────────────────────────────────────────── */
+    .prof-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:12px; padding:18px; }
+    .prof-card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:13px; transition:box-shadow .15s; }
+    .prof-card:hover { box-shadow:var(--sh2); }
+    .prof-av { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--teal)); display:flex; align-items:center; justify-content:center; font-size:16px; color:#fff; font-weight:700; flex-shrink:0; }
+    .prof-inf { flex:1; min-width:0; }
+    .prof-nm  { font-size:13.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .prof-sp  { font-size:11.5px; color:var(--muted); }
+    .prof-ct  { font-size:10.5px; color:var(--blue); font-weight:600; margin-top:2px; }
+    .prof-acts { display:flex; gap:4px; }
+    .prof-add { background:var(--bg); border:2px dashed var(--border); border-radius:10px; padding:14px 16px; display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; font-size:12.5px; color:var(--muted); font-weight:500; transition:all .15s; }
+    .prof-add:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-l); }
+
+    /* ─── AGENDA ────────────────────────────────────────────────────────── */
+    .agenda-wrap { display:flex; flex-direction:column; }
+
+    .agenda-toolbar {
+      padding:12px 18px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+    .agenda-doc-sel { padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; color:var(--text); background:#fff; outline:none; min-width:200px; }
+    .agenda-week-nav { display:flex; align-items:center; gap:8px; margin-left:auto; }
+    .week-label { font-size:13px; font-weight:600; color:var(--text); min-width:180px; text-align:center; }
+    .agenda-config-btn { padding:6px 12px; font-size:12px; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:7px; cursor:pointer; }
+    .agenda-config-btn:hover { background:var(--bg); }
+
+    .agenda-grid-wrap { overflow-x:auto; }
+
+    .agenda-table { width:100%; border-collapse:collapse; min-width:600px; }
+    .agenda-table thead th { padding:9px 12px; font-size:11px; font-weight:600; color:var(--muted); text-align:center; border-bottom:1px solid var(--border); border-right:1px solid var(--border); background:#f8fafc; }
+    .agenda-table thead th:first-child { width:60px; text-align:right; border-right:1px solid var(--border); }
+    .agenda-table td { border-bottom:1px solid #f1f5f9; border-right:1px solid #f1f5f9; padding:0; height:38px; }
+    .agenda-table td:first-child { text-align:right; padding-right:8px; font-size:10.5px; color:var(--muted); font-weight:500; background:#fafbfc; border-right:1px solid var(--border); white-space:nowrap; }
+
+    .agenda-cell { width:100%; height:100%; display:flex; align-items:center; padding:0 6px; min-height:38px; }
+    .agenda-cell.free { background:#f0fdf4; cursor:pointer; }
+    .agenda-cell.free:hover { background:#dcfce7; }
+    .agenda-cell.outside { background:#f8fafc; }
+    .agenda-cell.booked { cursor:pointer; background:#eff6ff; }
+    .agenda-cell.booked:hover { background:#dbeafe; }
+    .agenda-cell.weekend { background:#f8fafc; }
+
+    .agenda-booking {
+      width:100%; background:var(--blue); border-radius:5px;
+      padding:3px 7px; font-size:10.5px; color:#fff; font-weight:500;
+      overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+    }
+    .agenda-booking.confirmado { background:var(--ok); }
+    .agenda-booking.cancelado  { background:var(--muted); opacity:.65; }
+    .agenda-booking.pendiente  { background:var(--warn); }
+
+    .agenda-today-col { background:rgba(29,111,164,.03); }
+
+    .no-schedule { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; color:var(--muted); text-align:center; gap:10px; }
+
+    /* Schedule editor modal */
+    .sched-day { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+    .sched-day:last-child { border-bottom:none; }
+    .sched-cb { width:16px; height:16px; cursor:pointer; flex-shrink:0; }
+    .sched-day-name { font-size:13px; font-weight:500; min-width:80px; }
+    .sched-times { display:flex; align-items:center; gap:6px; flex:1; }
+    .sched-time { padding:5px 8px; border:1px solid var(--border); border-radius:7px; font-family:inherit; font-size:12px; color:var(--text); outline:none; width:90px; }
+    .sched-time:disabled { background:#f8fafc; color:var(--muted); }
+    .sched-sep { font-size:12px; color:var(--muted); }
+    .sched-dur { padding:5px 8px; border:1px solid var(--border); border-radius:7px; font-family:inherit; font-size:12px; color:var(--text); outline:none; width:80px; }
+    .sched-dur:disabled { background:#f8fafc; color:var(--muted); }
+
+    /* ─── USERS ─────────────────────────────────────────────────────────── */
+    .users-table-wrap { padding:16px 18px; }
+    .user-card { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+    .user-card:last-child { border-bottom:none; }
+    .user-av { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:15px; color:#fff; font-weight:700; flex-shrink:0; }
+    .user-inf { flex:1; min-width:0; }
+    .user-nm  { font-size:13px; font-weight:600; }
+    .user-un  { font-size:11.5px; color:var(--muted); font-family:monospace; }
+    .role-badge { display:inline-flex; padding:2px 8px; border-radius:12px; font-size:10.5px; font-weight:600; text-transform:uppercase; }
+    .role-super { background:#f3e8ff; color:#6d28d9; }
+    .role-admin { background:var(--info-bg); color:var(--info); }
+    .inactive-badge { display:inline-flex; padding:2px 8px; border-radius:12px; font-size:10.5px; background:var(--bg); color:var(--muted); font-weight:600; text-transform:uppercase; }
+
+    /* ─── CALENDAR (mini) ───────────────────────────────────────────────── */
+    .cal-section { margin-top:16px; }
+    .cal-body { display:grid; grid-template-columns:1fr 260px; }
+    @media(max-width:820px){.cal-body{grid-template-columns:1fr}}
+    .cal-main { padding:14px 18px 18px; }
+    .cal-dp { border-left:1px solid var(--border); padding:14px 14px 18px; background:#fafbfc; overflow-y:auto; max-height:460px; }
+    .cal-nav { display:flex; align-items:center; gap:9px; }
+    .cal-ml  { font-size:13.5px; font-weight:700; min-width:160px; text-align:center; letter-spacing:-.01em; }
+    .cal-wds { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; margin-bottom:3px; }
+    .cal-wd  { text-align:center; font-size:9.5px; font-weight:600; color:var(--muted); text-transform:uppercase; padding:5px 0; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; }
+    .cal-day { min-height:62px; border-radius:7px; padding:4px 3px 3px; cursor:pointer; border:1.5px solid transparent; transition:background .12s; }
+    .cal-day:hover { background:var(--blue-l); }
+    .cal-day.ct { background:var(--blue-l); border-color:var(--blue); }
+    .cal-day.cs { background:var(--navy); border-color:var(--navy); }
+    .cal-day.cs .cdn { color:#fff; }
+    .cal-day.cw { background:#f8fafc; }
+    .cal-day.co { opacity:.28; pointer-events:none; }
+    .cdn { font-size:10.5px; font-weight:600; display:block; text-align:right; padding-right:2px; line-height:1; margin-bottom:3px; }
+    .ct .cdn { color:var(--blue); }
+    .cpill { display:block; font-size:8.5px; padding:1px 4px; border-radius:3px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500; }
+    .cp-c { background:var(--ok-bg); color:#065f46; }
+    .cp-p { background:var(--warn-bg); color:#92400e; }
+    .cp-m { font-size:8px; color:var(--muted); }
+    .cal-dd { font-size:11.5px; font-weight:700; color:var(--navy); margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--border); }
+    .cal-empty-d { display:flex; flex-direction:column; align-items:center; justify-content:center; height:160px; color:var(--muted); font-size:12.5px; text-align:center; gap:5px; }
+    .cal-appt { background:#fff; border:1px solid var(--border); border-radius:7px; padding:7px 9px; margin-bottom:6px; border-left:3px solid var(--blue); cursor:pointer; }
+    .cal-appt:hover { box-shadow:var(--sh); }
+    .cal-appt.conf { border-left-color:var(--ok); }
+    .cal-appt.canc { border-left-color:var(--err); opacity:.55; }
+    .cal-at { font-size:11px; font-weight:700; color:var(--blue); margin-bottom:2px; }
+    .cal-appt.conf .cal-at { color:var(--ok); }
+    .cal-an { font-size:12px; font-weight:600; }
+    .cal-as { font-size:10.5px; color:var(--muted); margin-top:1px; }
+
+    /* ─── AUDIT LOG ─────────────────────────────────────────────────────── */
+    .audit-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:10px 18px; border-bottom:1px solid var(--border); }
+    .audit-wrap { overflow-x:auto; }
+    .audit-action { font-size:10px; font-weight:700; padding:2px 7px; border-radius:12px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; display:inline-block; }
+    .aa-create  { background:#d1fae5; color:#065f46; }
+    .aa-update  { background:#dbeafe; color:#1e40af; }
+    .aa-delete  { background:#fee2e2; color:#991b1b; }
+    .aa-other   { background:#f3f4f6; color:#374151; }
+    .audit-data { font-size:10.5px; font-family:monospace; color:var(--muted); max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .audit-pager { display:flex; align-items:center; gap:10px; padding:10px 18px; border-top:1px solid var(--border); font-size:12.5px; }
+
+    /* ─── RBAC ──────────────────────────────────────────────────────────── */
+    .rbac-layout { display:grid; grid-template-columns:260px 1fr; gap:16px; align-items:start; }
+    @media(max-width:860px){.rbac-layout{grid-template-columns:1fr}}
+    .role-list { list-style:none; padding:0; margin:0; }
+    .role-item { display:flex; align-items:center; gap:9px; padding:10px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
+    .role-item:last-child { border-bottom:none; }
+    .role-item:hover { background:var(--blue-l); }
+    .role-item.active { background:var(--blue-l); border-right:3px solid var(--blue); }
+    .role-dot { width:9px; height:9px; border-radius:50%; background:var(--blue); flex-shrink:0; }
+    .role-sys { font-size:9px; color:var(--muted); background:var(--bg); padding:1px 5px; border-radius:8px; font-weight:600; text-transform:uppercase; }
+    .perm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; padding:16px; }
+    .perm-cat { background:#fff; border:1px solid var(--border); border-radius:9px; overflow:hidden; }
+    .perm-cat-hd { padding:9px 14px; background:#f8fafc; border-bottom:1px solid var(--border); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); display:flex; align-items:center; justify-content:space-between; }
+    .perm-row { display:flex; align-items:center; gap:9px; padding:8px 14px; border-bottom:1px solid #f1f5f9; }
+    .perm-row:last-child { border-bottom:none; }
+    .perm-cb { width:15px; height:15px; cursor:pointer; flex-shrink:0; accent-color:var(--blue); }
+    .perm-key { font-size:11.5px; font-weight:600; color:var(--text); font-family:monospace; }
+    .perm-desc { font-size:10.5px; color:var(--muted); margin-top:1px; }
+    .rbac-ft { padding:12px 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+
+    /* ─── GDPR FOOTER ───────────────────────────────────────────────────── */
+    .gdpr { background:var(--navy); color:rgba(255,255,255,.3); text-align:center; font-size:10.5px; padding:7px 20px; letter-spacing:.02em; }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────────────────── */
+    @media(max-width:900px){table th:nth-child(5),table td:nth-child(5){display:none}}
+    @media(max-width:700px){
+      .container{padding:14px 12px 32px}
+      table th:nth-child(4),table td:nth-child(4){display:none}
+    }
+    @media(max-width:480px){table th:nth-child(3),table td:nth-child(3){display:none}}
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ══════════════════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🏥</div>
+    <div class="login-title">Centre Mèdic Esplugues</div>
+    <div class="login-sub">Panel de gestión · Acceso restringido</div>
+    <label class="login-label">Usuario</label>
+    <input class="login-inp" id="loginUser" type="text" autocomplete="username" placeholder="admin">
+    <label class="login-label">Contraseña</label>
+    <input class="login-inp" id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button class="login-btn" onclick="doLogin()">Iniciar sesión</button>
+    <div id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══════════════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="brand">
+    <div class="brand-logo">🏥</div>
+    <div>
+      <div class="brand-name">Centre Mèdic Esplugues</div>
+      <div class="brand-tag">Cercanía · Recursos · Experiencia</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="bot-pill"><span class="dot-live"></span> Bot activo</div>
+    <span class="hdr-user" id="hdrUser"></span>
+    <button class="hdr-logout" onclick="doLogout()">Salir</button>
+  </div>
+</header>
+
+<nav class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('citas',this)">📋 Citas</button>
+  <button class="tab-btn" onclick="switchTab('agenda',this)">📆 Agenda</button>
+  <button class="tab-btn" onclick="switchTab('profesionales',this)">👨‍⚕️ Profesionales</button>
+  <button class="tab-btn" onclick="switchTab('usuarios',this)" id="tabUsuariosBtn">🔐 Usuarios</button>
+  <button class="tab-btn" onclick="switchTab('calendario',this)">📅 Calendario</button>
+  <button class="tab-btn" onclick="switchTab('auditoria',this)" id="tabAuditoriaBtn" style="display:none">🔍 Auditoría</button>
+  <button class="tab-btn" onclick="switchTab('rbac',this)" id="tabRbacBtn" style="display:none">🛡 Roles</button>
+</nav>
+
+<!-- ═══ TAB: CITAS ════════════════════════════════════════════════════════════ -->
+<div class="tab-pane active" id="tab-citas">
+<div class="container">
+  <div class="page-title">Panel de gestión de citas</div>
+  <div class="page-sub" id="lastUpdate">Cargando...</div>
+
+  <div class="kpis">
+    <div class="kpi kpi-navy"><span class="kpi-icon">👥</span><div class="kpi-val" id="kTotal">—</div><div class="kpi-lbl">Pacientes</div></div>
+    <div class="kpi kpi-ok">  <span class="kpi-icon">✅</span><div class="kpi-val" id="kConf">—</div><div class="kpi-lbl">Confirmadas</div></div>
+    <div class="kpi kpi-warn"><span class="kpi-icon">🕐</span><div class="kpi-val" id="kPend">—</div><div class="kpi-lbl">Pendientes</div></div>
+    <div class="kpi kpi-teal"><span class="kpi-icon">📊</span><div class="kpi-val" id="kRate">—</div><div class="kpi-lbl">Conversión</div></div>
+    <div class="kpi kpi-pur"> <span class="kpi-icon">💬</span><div class="kpi-val" id="kMsgs">—</div><div class="kpi-lbl">Mensajes</div></div>
+    <div class="kpi kpi-blue"><span class="kpi-icon">📅</span><div class="kpi-val" id="kHoy">—</div><div class="kpi-lbl">Nuevos hoy</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Pacientes captados</span>
+        <div class="card-acts">
+          <button class="btn btn-outline" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn-rf" onclick="load()" title="Actualizar">↻</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <input type="text" class="srch" id="busqueda" placeholder="Buscar nombre, teléfono, DNI, código..." oninput="filtrar()">
+        <select class="sel" id="filtroEstado" onchange="filtrar()">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmado">Confirmada</option>
+          <option value="rechazado">Cancelada</option>
+          <option value="contactado">Contactado</option>
+        </select>
+        <select class="sel" id="filtroServicio" onchange="filtrar()">
+          <option value="">Todos los tratamientos</option>
+        </select>
+      </div>
+      <div class="tw" id="tableWrap">
+        <div class="empty"><div class="ei">📋</div><div>Sin datos aún</div></div>
+      </div>
+    </div>
+
+    <div class="sside">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Especialidades</span></div>
+        <div class="svc-body" id="svcBars">
+          <div class="empty" style="padding:22px 0"><div class="ei">📊</div><div>Sin datos</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Estados</span></div>
+        <div class="ml">
+          <div class="mi"><span style="color:var(--muted)">🕐 Pendientes</span><span class="ml-v" id="mPend">—</span></div>
+          <div class="mi"><span style="color:var(--muted)">✅ Confirmadas</span><span class="ml-v" id="mConf">—</span></div>
+          <div class="mi"><span style="color:var(--muted)">❌ Canceladas</span><span class="ml-v" id="mRech">—</span></div>
+          <div class="mi"><span style="color:var(--muted)">📞 Contactados</span><span class="ml-v" id="mCont">—</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Próximas citas</span><span style="font-size:10.5px;color:var(--muted)">Siguientes 6</span></div>
+        <div class="prox-body" id="proximasList">
+          <div class="empty" style="padding:18px 0"><div class="ei">📭</div><div>Sin citas próximas</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB: AGENDA ════════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-agenda">
+<div class="container">
+  <div class="page-title">Agenda de profesionales</div>
+  <div class="page-sub">Gestión de horarios y citas por médico</div>
+
+  <div class="card">
+    <div class="agenda-wrap">
+      <div class="agenda-toolbar">
+        <select class="agenda-doc-sel" id="agendaDocSel" onchange="loadAgenda()">
+          <option value="">— Seleccione un profesional —</option>
+        </select>
+        <button class="agenda-config-btn" onclick="openScheduleEditor()" id="agendaConfigBtn" style="display:none">⚙ Configurar horario</button>
+        <div class="agenda-week-nav" style="margin-left:auto">
+          <button class="btn-rf" onclick="agendaPrevWeek()">‹</button>
+          <span class="week-label" id="agendaWeekLabel">—</span>
+          <button class="btn-rf" onclick="agendaNextWeek()">›</button>
+        </div>
+      </div>
+      <div class="agenda-grid-wrap" id="agendaGridWrap">
+        <div class="no-schedule">
+          <div style="font-size:36px">📆</div>
+          <div style="font-size:14px;font-weight:600">Seleccione un profesional</div>
+          <div style="font-size:13px">para ver su agenda semanal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB: PROFESIONALES ════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-profesionales">
+<div class="container">
+  <div class="page-title">Equipo médico</div>
+  <div class="page-sub">Médicos y especialistas del centre</div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Profesionales</span>
+      <button class="btn btn-primary" onclick="openAddProf()">+ Añadir</button>
+    </div>
+    <div class="prof-grid" id="profGrid">
+      <div class="empty" style="padding:38px 20px"><div class="ei">👨‍⚕️</div><div>Sin profesionales</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB: USUARIOS ═════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-usuarios">
+<div class="container">
+  <div class="page-title">Gestión de usuarios</div>
+  <div class="page-sub">Cuentas con acceso al panel de administración</div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Usuarios del sistema</span>
+      <button class="btn btn-primary" onclick="openAddUser()">+ Añadir usuario</button>
+    </div>
+    <div class="users-table-wrap" id="usersWrap">
+      <div class="empty"><div class="ei">🔐</div><div>Sin usuarios</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB: CALENDARIO ════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-calendario">
+<div class="container">
+  <div class="page-title">Calendario de citas</div>
+  <div class="page-sub">Vista mensual de todas las citas programadas</div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Calendario</span>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <select class="agenda-doc-sel" id="calDocSel" onchange="onCalDocChange()" style="min-width:190px">
+          <option value="">Todos los pacientes</option>
+        </select>
+        <div class="cal-nav">
+          <button class="btn-rf" onclick="prevMonth()">‹</button>
+          <span class="cal-ml" id="calMonthLabel">—</span>
+          <button class="btn-rf" onclick="nextMonth()">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="cal-body">
+      <div class="cal-main">
+        <div class="cal-wds">
+          <div class="cal-wd">Lun</div><div class="cal-wd">Mar</div><div class="cal-wd">Mié</div>
+          <div class="cal-wd">Jue</div><div class="cal-wd">Vie</div>
+          <div class="cal-wd" style="color:var(--err)">Sáb</div><div class="cal-wd" style="color:var(--err)">Dom</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div class="cal-dp" id="calDetail">
+        <div class="cal-empty-d"><div style="font-size:26px">📅</div><div>Seleccione un día</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB: RBAC ════════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-rbac">
+<div class="container">
+  <div class="page-title">Roles y permisos</div>
+  <div class="page-sub">Control de acceso basado en roles (RBAC dinámico)</div>
+  <div class="rbac-layout">
+    <!-- Left: role list -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Roles</span>
+        <button class="btn btn-primary" onclick="openAddRole()" style="font-size:11px;padding:5px 10px">+ Nuevo rol</button>
+      </div>
+      <ul class="role-list" id="rbacRoleList">
+        <li style="padding:20px;text-align:center;color:var(--muted)">Cargando...</li>
+      </ul>
+    </div>
+    <!-- Right: permissions editor -->
+    <div class="card" id="rbacPermCard" style="display:none">
+      <div class="card-head">
+        <span class="card-title" id="rbacPermTitle">Permisos</span>
+        <div class="card-acts">
+          <button class="btn btn-ghost" id="rbacDeleteRoleBtn" onclick="deleteCurrentRole()" style="font-size:11px;display:none">🗑 Eliminar rol</button>
+        </div>
+      </div>
+      <div class="perm-grid" id="rbacPermGrid">
+        <div class="empty"><div class="ei">🛡</div><div>Seleccione un rol</div></div>
+      </div>
+      <div class="rbac-ft">
+        <button class="btn btn-ghost" onclick="rbacCancel()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveRolePerms()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB: AUDITORÍA ════════════════════════════════════════════════════════ -->
+<div class="tab-pane" id="tab-auditoria">
+<div class="container">
+  <div class="page-title">Registro de auditoría</div>
+  <div class="page-sub">Trazabilidad completa de acciones — cumplimiento ISO 27001 / RGPD</div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Acciones registradas</span>
+      <div class="card-acts">
+        <span id="auditTotal" style="font-size:11.5px;color:var(--muted)"></span>
+        <button class="btn-rf" onclick="loadAudit()" title="Actualizar">↻</button>
+      </div>
+    </div>
+    <div class="audit-filters">
+      <select class="sel" id="auditEntityFilter" onchange="loadAudit()">
+        <option value="">Todas las entidades</option>
+        <option value="lead">Pacientes (leads)</option>
+        <option value="professional">Profesionales</option>
+        <option value="booking">Reservas</option>
+        <option value="user">Usuarios</option>
+      </select>
+      <input type="text" class="srch" id="auditUserFilter" placeholder="Filtrar por usuario..." oninput="loadAudit()" style="max-width:200px">
+      <button class="btn btn-outline" onclick="exportAuditCSV()">⬇ CSV</button>
+    </div>
+    <div class="audit-wrap" id="auditTableWrap">
+      <div class="empty"><div class="ei">🔍</div><div>Sin registros</div></div>
+    </div>
+    <div class="audit-pager" id="auditPager" style="display:none">
+      <button class="btn btn-ghost" id="auditPrevBtn" onclick="auditPage(-1)">‹ Anterior</button>
+      <span id="auditPageLabel">Página 1</span>
+      <button class="btn btn-ghost" id="auditNextBtn" onclick="auditPage(1)">Siguiente ›</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<footer class="gdpr">
+  Datos tratados conforme al RGPD (UE) 2016/679. Acceso restringido a personal autorizado. &copy; <span id="yr"></span> Centre Mèdic Esplugues — Mestre Joan Corrales, 67, Esplugues de Llobregat · 93 470 53 10
+</footer>
+
+<div id="toasts"></div>
+
+<!-- ─── CONFIRM MODAL ─────────────────────────────────────────────────────── -->
+<div class="ov" id="confirmOv">
+  <div class="modal">
+    <h3 id="cmTitle">¿Confirmar?</h3>
+    <p  id="cmMsg">Esta acción no se puede deshacer.</p>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn" id="cmOk" onclick="runConfirm()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── NOTES MODAL ───────────────────────────────────────────────────────── -->
+<div class="ov" id="notesOv">
+  <div class="modal">
+    <h3>Notas clínicas</h3>
+    <p>Observaciones, alergias, seguimiento u otras anotaciones del paciente.</p>
+    <textarea id="notesText" placeholder="Observaciones..."></textarea>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeNotes()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNotes()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PROFESSIONAL MODAL ────────────────────────────────────────────────── -->
+<div class="ov" id="profOv">
+  <div class="modal">
+    <h3 id="profMTitle">Añadir profesional</h3>
+    <p>Registre un médico o especialista del centre.</p>
+    <label class="inp-lbl">Nombre completo</label>
+    <input type="text" class="inp" id="profName" placeholder="Dra. García López, María">
+    <label class="inp-lbl">Especialidad</label>
+    <select class="inp" id="profSpec">
+      <option value="">— Sin especialidad —</option>
+      <option value="Medicina de Familia">Medicina de Familia</option>
+      <option value="Pediatría">Pediatría</option>
+      <option value="Fisioterapia y Rehabilitación">Fisioterapia y Rehabilitación</option>
+      <option value="Psicología / Psiquiatría">Psicología / Psiquiatría</option>
+      <option value="Dermatología / Medicina Estética">Dermatología / Medicina Estética</option>
+      <option value="Ginecología y Obstetricia">Ginecología y Obstetricia</option>
+      <option value="Traumatología y Ortopedia">Traumatología y Ortopedia</option>
+      <option value="Nutrición y Dietética">Nutrición y Dietética</option>
+      <option value="Cardiología">Cardiología</option>
+      <option value="Neurología">Neurología</option>
+      <option value="Neumología / Alergología">Neumología / Alergología</option>
+      <option value="Odontología">Odontología</option>
+      <option value="Oftalmología / Optometría">Oftalmología / Optometría</option>
+      <option value="ORL — Otorrinolaringología">ORL — Otorrinolaringología</option>
+      <option value="Urología y Andrología">Urología y Andrología</option>
+      <option value="Reumatología">Reumatología</option>
+      <option value="Medicina Interna">Medicina Interna</option>
+      <option value="Endocrinología">Endocrinología</option>
+      <option value="Cirugía General">Cirugía General</option>
+      <option value="Logopedia">Logopedia</option>
+      <option value="Podología">Podología</option>
+      <option value="Enfermería">Enfermería</option>
+      <option value="Radiología">Radiología</option>
+      <option value="Urgencias">Urgencias</option>
+    </select>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeProfModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProf()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ROLE MODAL ───────────────────────────────────────────────────────── -->
+<div class="ov" id="roleOv">
+  <div class="modal">
+    <h3 id="roleMTitle">Nuevo rol</h3>
+    <p>Los roles personalizados pueden recibir cualquier combinación de permisos.</p>
+    <label class="inp-lbl">Nombre del rol</label>
+    <input type="text" class="inp" id="roleName" placeholder="ej: recepcion">
+    <label class="inp-lbl">Descripción</label>
+    <input type="text" class="inp" id="roleDesc" placeholder="Recepcionistas del centro">
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeRoleModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNewRole()">Crear rol</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── USER MODAL ────────────────────────────────────────────────────────── -->
+<div class="ov" id="userOv">
+  <div class="modal">
+    <h3 id="userMTitle">Añadir usuario</h3>
+    <p id="userMSub">Cree una cuenta de acceso al panel.</p>
+    <label class="inp-lbl">Nombre completo</label>
+    <input type="text" class="inp" id="userName" placeholder="Ana García">
+    <label class="inp-lbl">Usuario (login)</label>
+    <input type="text" class="inp" id="userUsername" placeholder="agarcia" autocomplete="off">
+    <label class="inp-lbl" id="passLabel">Contraseña</label>
+    <input type="password" class="inp" id="userPass" placeholder="••••••••" autocomplete="new-password">
+    <label class="inp-lbl">Rol</label>
+    <select class="inp" id="userRole">
+      <option value="admin">Admin</option>
+      <option value="superadmin">Superadmin</option>
+    </select>
+    <div class="mf">
+      <button class="btn btn-ghost" onclick="closeUserModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SCHEDULE EDITOR MODAL ─────────────────────────────────────────────── -->
+<div class="ov" id="schedOv">
+  <div class="modal" style="max-width:520px">
+    <h3 id="schedTitle">Configurar horario</h3>
+    <p>Define los días y horas de trabajo del profesional.</p>
+    <div id="schedDays"></div>
+    <div class="mf" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeSchedEditor()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSchedule()">Guardar horario</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── FICHA DE CITA ─────────────────────────────────────────────────────── -->
+<div class="ficha-ov" id="fichaOv" onclick="closeFichaIfBg(event)">
+  <div class="ficha-panel">
+    <div class="ficha-hdr">
+      <button class="ficha-x" onclick="closeFicha()">✕</button>
+      <div class="ficha-code" id="fCode">—</div>
+      <div class="ficha-name" id="fName">—</div>
+      <span class="ficha-badge" id="fBadge">—</span>
+    </div>
+    <div class="ficha-body">
+      <div class="fsec">
+        <div class="fsec-t">Datos del centro</div>
+        <div class="frow"><span class="fl">Sede</span><span class="fv acc">Centre Mèdic Esplugues</span></div>
+        <div class="frow"><span class="fl">Especialidad</span><span class="fv" id="fEsp">—</span></div>
+        <div class="frow"><span class="fl">Compañía</span><span class="fv" id="fMutua">—</span></div>
+        <div class="frow" style="align-items:center">
+          <span class="fl">Profesional</span>
+          <select class="ficha-sel" id="fProf" onchange="assignProf()">
+            <option value="">— Sin asignar —</option>
+          </select>
+        </div>
+      </div>
+      <div class="fsec" style="margin-top:14px">
+        <div class="fsec-t">Datos del paciente</div>
+        <div class="frow"><span class="fl">Paciente</span><span class="fv" id="fPac">—</span></div>
+        <div class="frow"><span class="fl">DNI / NIE</span><span class="fv tdi" id="fDni">—</span></div>
+        <div class="frow"><span class="fl">Teléfono</span><span class="fv" id="fTel">—</span></div>
+      </div>
+      <div class="fsec" style="margin-top:14px">
+        <div class="fsec-t">Fecha y hora</div>
+        <div class="frow"><span class="fl">Fecha</span><span class="fv acc" id="fFecha">—</span></div>
+        <div class="frow"><span class="fl">Hora</span><span class="fv acc" id="fHora">—</span></div>
+        <div class="frow"><span class="fl">Preferencia</span><span class="fv" id="fHorario">—</span></div>
+      </div>
+      <div class="fsec" style="margin-top:14px;padding-bottom:10px">
+        <div class="fsec-t">Notas clínicas</div>
+        <div class="fnotes" id="fNotes"><span class="fni">Sin notas registradas</span></div>
+      </div>
+    </div>
+    <div class="ficha-ft">
+      <button class="btn btn-ok"     id="fConfBtn"  onclick="fichaConfirmar()">✓ Confirmar</button>
+      <button class="btn btn-ghost"               onclick="fichaContactado()">📞 Contactado</button>
+      <button class="btn btn-danger" id="fRechBtn"  onclick="fichaRechazar()">✕ Cancelar</button>
+      <button class="btn btn-outline"             onclick="openNotes(currentFichaId)" style="margin-left:auto">📝 Notas</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+let token = localStorage.getItem('cme_token') || '';
+let currentUser = null;
+let allLeads = [], allProfs = [], allUsers = [];
+let confirmCb = null, currentNotesId = null, currentFichaId = null;
+let editingProfId = null, editingUserId = null;
+let calYear, calMonth, calSelected = null, calData = {}, calDocId = null, calDocBookings = {};
+let agendaWeekStart = null, agendaBookings = [], agendaSchedule = [], agendaDocId = null;
+
+// ════════════════════════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════════════════════════
+async function api(method, url, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (r.status === 401) { showLogin(); throw new Error('UNAUTHORIZED'); }
+  return r;
+}
+
+function showLogin()  { document.getElementById('loginScreen').classList.remove('hidden'); }
+function hideLogin()  { document.getElementById('loginScreen').classList.add('hidden'); }
+
+function hasPerm(perm) {
+  if (!currentUser) return false;
+  const p = currentUser.permissions || [];
+  return p.includes('*') || p.includes(perm);
+}
+
+function applyTabVisibility() {
+  document.getElementById('tabUsuariosBtn').style.display   = hasPerm('usuarios.ver')   ? '' : 'none';
+  document.getElementById('tabAuditoriaBtn').style.display  = hasPerm('auditoria.ver')  ? '' : 'none';
+  document.getElementById('tabRbacBtn').style.display       = hasPerm('roles.ver')      ? '' : 'none';
+}
+
+async function checkAuth() {
+  if (!token) { showLogin(); return false; }
+  try {
+    const r = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!r.ok) { showLogin(); return false; }
+    currentUser = await r.json();
+    document.getElementById('hdrUser').textContent = currentUser.name || currentUser.username;
+    applyTabVisibility();
+    hideLogin();
+    return true;
+  } catch { showLogin(); return false; }
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  document.getElementById('loginErr').textContent = '';
+  if (!username || !password) { document.getElementById('loginErr').textContent = 'Introduce usuario y contraseña'; return; }
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await r.json();
+    if (!r.ok) { document.getElementById('loginErr').textContent = data.error || 'Error al iniciar sesión'; return; }
+    token = data.token;
+    localStorage.setItem('cme_token', token);
+    currentUser = { username, name: data.name, role: data.role, permissions: data.permissions || [] };
+    document.getElementById('hdrUser').textContent = data.name || username;
+    applyTabVisibility();
+    hideLogin();
+    load();
+  } catch { document.getElementById('loginErr').textContent = 'Error de conexión'; }
+}
+
+async function doLogout() {
+  await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+  token = ''; localStorage.removeItem('cme_token');
+  showLogin();
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ════════════════════════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'calendario') { populateCalDocSel(); if (calDocId) loadCalDocBookings(); else renderCalendar(); }
+  if (id === 'agenda') { populateAgendaDocSel(); if (agendaDocId) loadAgenda(); }
+  if (id === 'usuarios') loadUsers();
+  if (id === 'auditoria') loadAudit();
+  if (id === 'rbac') loadRbac();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CLOCK
+// ════════════════════════════════════════════════════════════════════════════
+setInterval(() => {}, 30000);
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════════════════
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast t-${type}`; el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIRM MODAL
+// ════════════════════════════════════════════════════════════════════════════
+function openConfirm(title, msg, btnLabel, btnCls, cb) {
+  document.getElementById('cmTitle').textContent = title;
+  document.getElementById('cmMsg').textContent   = msg;
+  const btn = document.getElementById('cmOk');
+  btn.textContent = btnLabel; btn.className = `btn ${btnCls}`;
+  confirmCb = cb;
+  document.getElementById('confirmOv').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmOv').classList.remove('open'); confirmCb = null; }
+function runConfirm()   { if (confirmCb) confirmCb(); closeConfirm(); }
+document.getElementById('confirmOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
+
+// ════════════════════════════════════════════════════════════════════════════
+// NOTES MODAL
+// ════════════════════════════════════════════════════════════════════════════
+function openNotes(id) {
+  const lead = allLeads.find(l => l.id === id);
+  currentNotesId = id;
+  document.getElementById('notesText').value = (lead && lead.notes) || '';
+  document.getElementById('notesOv').classList.add('open');
+  setTimeout(() => document.getElementById('notesText').focus(), 50);
+}
+function closeNotes() { document.getElementById('notesOv').classList.remove('open'); currentNotesId = null; }
+document.getElementById('notesOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeNotes(); });
+
+async function saveNotes() {
+  if (!currentNotesId) return;
+  const notes = document.getElementById('notesText').value.trim();
+  try {
+    const r = await api('PATCH', `/api/leads/${currentNotesId}/notes`, { notes });
+    if (!r.ok) throw new Error();
+    closeNotes(); toast('Notas guardadas', 'ok');
+    await load();
+    if (currentFichaId === currentNotesId) openFicha(currentFichaId);
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al guardar notas', 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FICHA DE CITA
+// ════════════════════════════════════════════════════════════════════════════
+function openFicha(id) {
+  const lead = allLeads.find(l => l.id === id);
+  if (!lead) return;
+  currentFichaId = id;
+
+  document.getElementById('fCode').textContent = lead.cita || `#${lead.id}`;
+  document.getElementById('fName').textContent = lead.name || 'Paciente';
+
+  const bcls = { pendiente:'fb-pen', confirmado:'fb-con', rechazado:'fb-rej', contactado:'fb-cto' };
+  const blbl = { pendiente:'Pendiente', confirmado:'Confirmada', rechazado:'Cancelada', contactado:'Contactado' };
+  const fb = document.getElementById('fBadge');
+  fb.className = 'ficha-badge ' + (bcls[lead.estado]||'fb-pen');
+  fb.textContent = blbl[lead.estado]||lead.estado;
+
+  document.getElementById('fEsp').textContent   = lead.service  || '—';
+  document.getElementById('fMutua').textContent = lead.mutua    || '—';
+  document.getElementById('fPac').textContent   = lead.name     || '—';
+  document.getElementById('fDni').textContent   = lead.dni      || '—';
+  const phone = (lead.contact || lead.phone || '').replace('tg:','');
+  document.getElementById('fTel').textContent   = phone         || '—';
+
+  if (lead.fecha_cita) {
+    const [dp, tp] = lead.fecha_cita.split(' ');
+    const [y,m,d]  = dp.split('-');
+    const wd = new Date(+y,+m-1,+d).toLocaleDateString('es-ES',{weekday:'long'});
+    document.getElementById('fFecha').textContent   = `${d}/${m}/${y} — ${wd.charAt(0).toUpperCase()+wd.slice(1)}`;
+    document.getElementById('fHora').textContent    = tp || '—';
+  } else {
+    document.getElementById('fFecha').textContent = '—';
+    document.getElementById('fHora').textContent  = '—';
+  }
+  document.getElementById('fHorario').textContent = lead.horario || '—';
+
+  const ne = document.getElementById('fNotes');
+  if (lead.notes?.trim()) { ne.innerHTML=''; ne.textContent = lead.notes; }
+  else ne.innerHTML = '<span class="fni">Sin notas registradas</span>';
+
+  const ps = document.getElementById('fProf');
+  ps.innerHTML = '<option value="">— Sin asignar —</option>' +
+    allProfs.map(p => `<option value="${esc(p.name)}"${lead.professional===p.name?' selected':''}>${esc(p.name)}${p.specialty?' — '+esc(p.specialty):''}</option>`).join('');
+
+  document.getElementById('fConfBtn').disabled = lead.estado === 'confirmado';
+  document.getElementById('fRechBtn').disabled = lead.estado === 'rechazado';
+
+  document.getElementById('fichaOv').classList.add('open');
+}
+
+function closeFicha() { document.getElementById('fichaOv').classList.remove('open'); currentFichaId = null; }
+function closeFichaIfBg(e) { if (e.target === document.getElementById('fichaOv')) closeFicha(); }
+
+async function assignProf() {
+  if (!currentFichaId) return;
+  const val = document.getElementById('fProf').value;
+  try {
+    await api('PATCH', `/api/leads/${currentFichaId}/professional`, { professional: val });
+    await load(); toast(val ? `Asignado: ${val}` : 'Profesional eliminado', 'ok');
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al asignar', 'err'); }
+}
+
+async function fichaConfirmar() {
+  if (!currentFichaId) return;
+  await cambiarEstado(currentFichaId,'confirmado');
+  openFicha(currentFichaId);
+}
+async function fichaContactado() {
+  if (!currentFichaId) return;
+  await cambiarEstado(currentFichaId,'contactado');
+  openFicha(currentFichaId);
+}
+async function fichaRechazar() {
+  openConfirm('Cancelar cita','¿Seguro que desea cancelar?','Cancelar cita','btn-danger', async () => {
+    await cambiarEstado(currentFichaId,'rechazado');
+    openFicha(currentFichaId);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PROFESSIONALS
+// ════════════════════════════════════════════════════════════════════════════
+function openAddProf() {
+  editingProfId = null;
+  document.getElementById('profMTitle').textContent = 'Añadir profesional';
+  document.getElementById('profName').value = '';
+  document.getElementById('profSpec').value = '';
+  document.getElementById('profOv').classList.add('open');
+  setTimeout(() => document.getElementById('profName').focus(), 50);
+}
+function openEditProf(id) {
+  const p = allProfs.find(x => x.id === id); if (!p) return;
+  editingProfId = id;
+  document.getElementById('profMTitle').textContent = 'Editar profesional';
+  document.getElementById('profName').value = p.name;
+  document.getElementById('profSpec').value = p.specialty||'';
+  document.getElementById('profOv').classList.add('open');
+}
+function closeProfModal() { document.getElementById('profOv').classList.remove('open'); editingProfId = null; }
+document.getElementById('profOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeProfModal(); });
+
+async function saveProf() {
+  const name = document.getElementById('profName').value.trim();
+  const specialty = document.getElementById('profSpec').value.trim();
+  if (!name) { toast('El nombre es obligatorio','err'); return; }
+  try {
+    if (editingProfId) {
+      await api('PUT', `/api/professionals/${editingProfId}`, { name, specialty });
+      toast('Profesional actualizado','ok');
+    } else {
+      await api('POST', '/api/professionals', { name, specialty });
+      toast('Profesional añadido','ok');
+    }
+    closeProfModal(); await loadProfessionals();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al guardar','err'); }
+}
+
+async function deleteProf(id) {
+  const p = allProfs.find(x => x.id === id);
+  openConfirm('Eliminar profesional', `¿Eliminar a ${p?p.name:'este profesional'}?`, 'Eliminar','btn-danger', async () => {
+    try { await api('DELETE', `/api/professionals/${id}`); toast('Eliminado','info'); await loadProfessionals(); }
+    catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error','err'); }
+  });
+}
+
+async function loadProfessionals() {
+  try {
+    const r = await api('GET','/api/professionals');
+    allProfs = await r.json();
+    renderProfessionals(); populateAgendaDocSel(); if(document.getElementById('calDocSel')) populateCalDocSel();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al cargar profesionales','err'); }
+}
+
+function renderProfessionals() {
+  const g = document.getElementById('profGrid');
+  const cards = allProfs.map(p => {
+    const ini = p.name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+    const cnt = allLeads.filter(l=>l.professional===p.name).length;
+    return `<div class="prof-card">
+      <div class="prof-av">${ini}</div>
+      <div class="prof-inf">
+        <div class="prof-nm" title="${esc(p.name)}">${esc(p.name)}</div>
+        <div class="prof-sp">${esc(p.specialty||'Sin especialidad')}</div>
+        <div class="prof-ct">${cnt} cita${cnt!==1?'s':''} asignada${cnt!==1?'s':''}</div>
+      </div>
+      <div class="prof-acts">
+        <button class="act" title="Horario" onclick="openScheduleEditorFor(${p.id})">📅</button>
+        <button class="act" title="Editar"  onclick="openEditProf(${p.id})">✏️</button>
+        <button class="act a-del" title="Eliminar" onclick="deleteProf(${p.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+  g.innerHTML = cards + `<div class="prof-add" onclick="openAddProf()"><span style="font-size:18px">+</span> Añadir profesional</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// USERS
+// ════════════════════════════════════════════════════════════════════════════
+async function loadUsers() {
+  try {
+    const r = await api('GET','/api/users');
+    if (!r.ok) return;
+    allUsers = await r.json();
+    renderUsers();
+  } catch(e) {}
+}
+
+function renderUsers() {
+  const w = document.getElementById('usersWrap');
+  if (!allUsers.length) { w.innerHTML='<div class="empty"><div class="ei">🔐</div><div>Sin usuarios</div></div>'; return; }
+  w.innerHTML = allUsers.map(u => {
+    const ini = (u.name||u.username).split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+    return `<div class="user-card">
+      <div class="user-av">${ini}</div>
+      <div class="user-inf">
+        <div class="user-nm">${esc(u.name||u.username)} ${!u.active?'<span class="inactive-badge">Inactivo</span>':''}</div>
+        <div class="user-un">@${esc(u.username)}</div>
+      </div>
+      <span class="${u.role==='superadmin'?'role-badge role-super':'role-badge role-admin'}">${u.role==='superadmin'?'Super Admin':'Admin'}</span>
+      <div class="acts" style="margin-left:10px" onclick="event.stopPropagation()">
+        <button class="act" title="Editar" onclick="openEditUser(${u.id})">✏️</button>
+        <button class="act" title="Cambiar contraseña" onclick="openPassModal(${u.id})">🔑</button>
+        <button class="act a-${u.active?'no':'ok'}" title="${u.active?'Desactivar':'Activar'}" onclick="toggleUser(${u.id},${u.active?0:1})">${u.active?'🚫':'✓'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddUser() {
+  editingUserId = null;
+  document.getElementById('userMTitle').textContent = 'Añadir usuario';
+  document.getElementById('userMSub').textContent   = 'Cree una cuenta de acceso al panel.';
+  document.getElementById('userName').value = '';
+  document.getElementById('userUsername').value = '';
+  document.getElementById('userPass').value = '';
+  document.getElementById('userUsername').disabled = false;
+  document.getElementById('passLabel').textContent = 'Contraseña';
+  document.getElementById('userPass').placeholder = '••••••••';
+  document.getElementById('userRole').value = 'admin';
+  document.getElementById('userOv').classList.add('open');
+}
+function openEditUser(id) {
+  const u = allUsers.find(x=>x.id===id); if (!u) return;
+  editingUserId = id;
+  document.getElementById('userMTitle').textContent = 'Editar usuario';
+  document.getElementById('userMSub').textContent   = 'Modifique nombre y rol del usuario.';
+  document.getElementById('userName').value = u.name||'';
+  document.getElementById('userUsername').value = u.username;
+  document.getElementById('userUsername').disabled = true;
+  document.getElementById('passLabel').textContent = 'Nueva contraseña (dejar vacío para no cambiar)';
+  document.getElementById('userPass').value = '';
+  document.getElementById('userPass').placeholder = 'Dejar vacío para no cambiar';
+  document.getElementById('userRole').value = u.role||'admin';
+  document.getElementById('userOv').classList.add('open');
+}
+function openPassModal(id) {
+  editingUserId = id;
+  document.getElementById('userMTitle').textContent = 'Cambiar contraseña';
+  document.getElementById('userMSub').textContent   = 'Introduce la nueva contraseña.';
+  const u = allUsers.find(x=>x.id===id);
+  document.getElementById('userName').value = u?.name||'';
+  document.getElementById('userUsername').value = u?.username||'';
+  document.getElementById('userUsername').disabled = true;
+  document.getElementById('userRole').value = u?.role||'admin';
+  document.getElementById('passLabel').textContent = 'Nueva contraseña';
+  document.getElementById('userPass').value = '';
+  document.getElementById('userOv').classList.add('open');
+}
+function closeUserModal() { document.getElementById('userOv').classList.remove('open'); editingUserId = null; }
+document.getElementById('userOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeUserModal(); });
+
+async function saveUser() {
+  const name     = document.getElementById('userName').value.trim();
+  const username = document.getElementById('userUsername').value.trim();
+  const password = document.getElementById('userPass').value;
+  const role     = document.getElementById('userRole').value;
+  try {
+    if (editingUserId) {
+      await api('PUT', `/api/users/${editingUserId}`, { name, role });
+      if (password) await api('PATCH', `/api/users/${editingUserId}/password`, { password });
+      toast('Usuario actualizado','ok');
+    } else {
+      if (!username) { toast('El nombre de usuario es obligatorio','err'); return; }
+      if (!password) { toast('La contraseña es obligatoria','err'); return; }
+      const r = await api('POST', '/api/users', { username, password, name, role });
+      if (!r.ok) { const e = await r.json(); toast(e.error||'Error','err'); return; }
+      toast('Usuario creado','ok');
+    }
+    closeUserModal(); await loadUsers();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error','err'); }
+}
+
+async function toggleUser(id, active) {
+  try { await api('PATCH', `/api/users/${id}/active`, { active }); toast(active?'Usuario activado':'Usuario desactivado','info'); await loadUsers(); }
+  catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error','err'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// AGENDA
+// ════════════════════════════════════════════════════════════════════════════
+function initAgendaWeek() {
+  const now = new Date();
+  const dow = now.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow;
+  agendaWeekStart = new Date(now);
+  agendaWeekStart.setDate(now.getDate() + diff);
+  agendaWeekStart.setHours(0,0,0,0);
+}
+
+function agendaPrevWeek() { agendaWeekStart.setDate(agendaWeekStart.getDate()-7); loadAgenda(); }
+function agendaNextWeek() { agendaWeekStart.setDate(agendaWeekStart.getDate()+7); loadAgenda(); }
+
+function populateAgendaDocSel() {
+  const sel = document.getElementById('agendaDocSel');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Seleccione un profesional —</option>' +
+    allProfs.map(p => `<option value="${p.id}"${String(p.id)===cur?' selected':''}>${esc(p.name)}${p.specialty?' ('+esc(p.specialty)+')':''}</option>`).join('');
+}
+
+async function loadAgenda() {
+  const sel = document.getElementById('agendaDocSel');
+  agendaDocId = sel.value ? Number(sel.value) : null;
+  document.getElementById('agendaConfigBtn').style.display = agendaDocId ? 'block' : 'none';
+
+  if (!agendaDocId) {
+    document.getElementById('agendaGridWrap').innerHTML = `<div class="no-schedule"><div style="font-size:36px">📆</div><div style="font-size:14px;font-weight:600">Seleccione un profesional</div></div>`;
+    return;
+  }
+
+  const end = new Date(agendaWeekStart);
+  end.setDate(end.getDate() + 6);
+  const startStr = fmtDate(agendaWeekStart);
+  const endStr   = fmtDate(end);
+  document.getElementById('agendaWeekLabel').textContent = `${fmtDisplay(agendaWeekStart)} — ${fmtDisplay(end)}`;
+
+  try {
+    const [sR, bR] = await Promise.all([
+      api('GET', `/api/schedules/${agendaDocId}`),
+      api('GET', `/api/bookings/${agendaDocId}?start=${startStr}&end=${endStr}`)
+    ]);
+    agendaSchedule = await sR.json();
+    agendaBookings = await bR.json();
+    renderAgenda();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al cargar agenda','err'); }
+}
+
+function renderAgenda() {
+  const wrap = document.getElementById('agendaGridWrap');
+  if (!agendaSchedule.length) {
+    wrap.innerHTML = `<div class="no-schedule">
+      <div style="font-size:36px">⚙️</div>
+      <div style="font-size:14px;font-weight:600">Sin horario configurado</div>
+      <div style="font-size:13px">Haga clic en "Configurar horario" para definir la disponibilidad</div>
+    </div>`;
+    return;
+  }
+
+  // Build a map: dayOfWeek → schedule
+  const schedMap = {};
+  agendaSchedule.forEach(s => { schedMap[s.day_of_week] = s; });
+
+  // Build booking map: "date|time" → booking
+  const bookMap = {};
+  agendaBookings.forEach(b => { bookMap[`${b.date_slot}|${b.time_slot}`] = b; });
+
+  // Days of the week (Mon=1...Sun=7) for this week
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(agendaWeekStart);
+    d.setDate(d.getDate() + i);
+    days.push(d);
+  }
+
+  // Build set of all time slots across all days
+  const slotSet = new Set();
+  agendaSchedule.forEach(s => {
+    const [sh,sm] = s.start_time.split(':').map(Number);
+    const [eh,em] = s.end_time.split(':').map(Number);
+    for (let m = sh*60+sm; m < eh*60+em; m += (s.slot_duration||30)) {
+      slotSet.add(`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`);
+    }
+  });
+  const slots = [...slotSet].sort();
+
+  if (!slots.length) {
+    wrap.innerHTML = `<div class="no-schedule"><div style="font-size:36px">⚙️</div><div>Horario configurado sin franjas horarias</div></div>`;
+    return;
+  }
+
+  const todayStr = fmtDate(new Date());
+
+  // Header
+  let html = `<table class="agenda-table"><thead><tr><th>Hora</th>`;
+  days.forEach((d,i) => {
+    const ds  = fmtDate(d);
+    const dow = d.getDay(); // 0=Sun
+    const isToday = ds === todayStr;
+    const nm = d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'numeric'});
+    const style = isToday ? 'color:var(--blue);background:rgba(29,111,164,.05)' : '';
+    html += `<th style="${style}">${nm.charAt(0).toUpperCase()+nm.slice(1)}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  // Rows per slot
+  slots.forEach(slot => {
+    html += `<tr><td>${slot}</td>`;
+    days.forEach(d => {
+      const ds  = fmtDate(d);
+      const jsDay = d.getDay(); // 0=Sun
+      const dow   = jsDay === 0 ? 7 : jsDay; // Mon=1..Sun=7
+      const sched = schedMap[dow];
+      const isToday = ds === todayStr;
+      const booking = bookMap[`${ds}|${slot}`];
+      const todayCls = isToday ? 'agenda-today-col' : '';
+
+      if (!sched) {
+        html += `<td class="${todayCls}"><div class="agenda-cell weekend"></div></td>`;
+        return;
+      }
+
+      const [sh,sm] = sched.start_time.split(':').map(Number);
+      const [eh,em] = sched.end_time.split(':').map(Number);
+      const [slH,slM] = slot.split(':').map(Number);
+      const slMin = slH*60+slM;
+      const inRange = slMin >= sh*60+sm && slMin < eh*60+em;
+
+      if (!inRange) {
+        html += `<td class="${todayCls}"><div class="agenda-cell outside"></div></td>`;
+        return;
+      }
+
+      if (booking) {
+        html += `<td class="${todayCls}"><div class="agenda-cell booked" onclick="openFichaFromBooking(${booking.lead_id||0},'${esc(booking.patient_name||'')}')" title="${esc(booking.patient_name||'')} — ${esc(booking.service||'')}">
+          <div class="agenda-booking ${booking.estado||'pendiente'}">${esc(booking.patient_name||'—')}</div>
+        </div></td>`;
+      } else {
+        html += `<td class="${todayCls}"><div class="agenda-cell free" title="Disponible ${slot}"></div></td>`;
+      }
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+function openFichaFromBooking(leadId, patientName) {
+  if (leadId) {
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) { switchTab('citas', document.querySelector('.tab-btn')); openFicha(leadId); }
+  } else {
+    toast(`Cita: ${patientName || 'sin paciente vinculado'}`, 'info');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SCHEDULE EDITOR
+// ════════════════════════════════════════════════════════════════════════════
+let schedEditingProfId = null;
+
+function openScheduleEditor() { if (agendaDocId) openScheduleEditorFor(agendaDocId); }
+
+async function openScheduleEditorFor(profId) {
+  schedEditingProfId = profId;
+  const prof = allProfs.find(p => p.id === profId);
+  document.getElementById('schedTitle').textContent = `Horario — ${prof ? prof.name : 'Profesional'}`;
+
+  try {
+    const r = await api('GET', `/api/schedules/${profId}`);
+    const sched = await r.json();
+    const schedMap = {};
+    sched.forEach(s => { schedMap[s.day_of_week] = s; });
+
+    const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+    const DOWs = [1,2,3,4,5,6,7];
+
+    document.getElementById('schedDays').innerHTML = DOWs.map((dow,i) => {
+      const s  = schedMap[dow];
+      const on = !!s;
+      return `<div class="sched-day">
+        <input type="checkbox" class="sched-cb" id="sdcb${dow}" ${on?'checked':''} onchange="toggleSchedDay(${dow})">
+        <label for="sdcb${dow}" class="sched-day-name">${DAYS[i]}</label>
+        <div class="sched-times">
+          <input type="time" class="sched-time" id="sdst${dow}" value="${s?.start_time||'08:00'}" ${!on?'disabled':''}>
+          <span class="sched-sep">—</span>
+          <input type="time" class="sched-time" id="sdet${dow}" value="${s?.end_time||'20:30'}" ${!on?'disabled':''}>
+          <select class="sched-dur" id="sddr${dow}" ${!on?'disabled':''}>
+            ${[15,20,30,60].map(d=>`<option value="${d}"${(s?.slot_duration||30)===d?' selected':''}>${d} min</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('schedOv').classList.add('open');
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al cargar horario','err'); }
+}
+
+function toggleSchedDay(dow) {
+  const on = document.getElementById(`sdcb${dow}`).checked;
+  ['st','et','dr'].forEach(s => {
+    const el = document.getElementById(`sd${s}${dow}`);
+    if (el) el.disabled = !on;
+  });
+}
+
+function closeSchedEditor() { document.getElementById('schedOv').classList.remove('open'); schedEditingProfId = null; }
+document.getElementById('schedOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeSchedEditor(); });
+
+async function saveSchedule() {
+  if (!schedEditingProfId) return;
+  const DOWs = [1,2,3,4,5,6,7];
+  try {
+    for (const dow of DOWs) {
+      const on = document.getElementById(`sdcb${dow}`)?.checked;
+      if (on) {
+        const st = document.getElementById(`sdst${dow}`).value;
+        const et = document.getElementById(`sdet${dow}`).value;
+        const dr = Number(document.getElementById(`sddr${dow}`).value);
+        await api('POST', '/api/schedules', { professional_id: schedEditingProfId, day_of_week: dow, start_time: st, end_time: et, slot_duration: dr });
+      } else {
+        await api('DELETE', `/api/schedules/${schedEditingProfId}/${dow}`);
+      }
+    }
+    toast('Horario guardado','ok');
+    closeSchedEditor();
+    if (agendaDocId === schedEditingProfId) loadAgenda();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al guardar horario','err'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CALENDAR
+// ════════════════════════════════════════════════════════════════════════════
+function initCalendar() { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
+
+function populateCalDocSel() {
+  const sel = document.getElementById('calDocSel');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos los pacientes</option>' +
+    allProfs.map(p => `<option value="${p.id}"${String(p.id)===cur?' selected':''}>${esc(p.name)}${p.specialty?' ('+esc(p.specialty)+')':''}</option>`).join('');
+}
+
+async function loadCalDocBookings() {
+  calDocId = Number(document.getElementById('calDocSel').value) || null;
+  calDocBookings = {};
+  if (!calDocId) { renderCalendar(); return; }
+  const startDate = fmtDate(new Date(calYear, calMonth, 1));
+  const endDate   = fmtDate(new Date(calYear, calMonth + 1, 0));
+  try {
+    const r = await api('GET', `/api/bookings/${calDocId}?start=${startDate}&end=${endDate}`);
+    const bookings = await r.json();
+    bookings.forEach(b => { (calDocBookings[b.date_slot] = calDocBookings[b.date_slot] || []).push(b); });
+    renderCalendar();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al cargar agenda del médico','err'); }
+}
+
+function onCalDocChange() { loadCalDocBookings(); }
+
+function buildCalendarData(leads) {
+  calData = {};
+  leads.forEach(l => { if (!l.fecha_cita) return; const ds = l.fecha_cita.slice(0,10); (calData[ds]=calData[ds]||[]).push(l); });
+}
+
+function fmtDate(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDisplay(d) { return d.toLocaleDateString('es-ES',{day:'numeric',month:'short'}); }
+
+function prevMonth() { if(calMonth===0){calMonth=11;calYear--;}else calMonth--; if(calDocId) loadCalDocBookings(); else renderCalendar(); }
+function nextMonth() { if(calMonth===11){calMonth=0;calYear++;}else calMonth++; if(calDocId) loadCalDocBookings(); else renderCalendar(); }
+
+function renderCalendar() {
+  const MN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('calMonthLabel').textContent = `${MN[calMonth]} ${calYear}`;
+  const ts = fmtDate(new Date());
+  const fd = new Date(calYear,calMonth,1);
+  const ld = new Date(calYear,calMonth+1,0);
+  let sdow = fd.getDay()-1; if(sdow<0)sdow=6;
+  const cells = [];
+  const pl = new Date(calYear,calMonth,0).getDate();
+  for(let i=sdow-1;i>=0;i--) cells.push({date:new Date(calYear,calMonth-1,pl-i),cur:false});
+  for(let d=1;d<=ld.getDate();d++) cells.push({date:new Date(calYear,calMonth,d),cur:true});
+  let t=1; while(cells.length<42) cells.push({date:new Date(calYear,calMonth+1,t++),cur:false});
+
+  document.getElementById('calGrid').innerHTML = cells.map(({date,cur}) => {
+    const ds  = fmtDate(date);
+    const dow = date.getDay();
+    const ap = calDocId
+      ? (calDocBookings[ds]||[]).map(b=>({...b, name: b.patient_name, fecha_cita: b.date_slot+' '+b.time_slot}))
+      : (calData[ds]||[]);
+    let cls = 'cal-day';
+    if(!cur)           cls+=' co';
+    if(dow===0||dow===6) cls+=' cw';
+    if(ds===ts)        cls+=' ct';
+    if(ds===calSelected) cls+=' cs';
+    const pills = ap.slice(0,2).map(a=>`<span class="cpill ${a.estado==='confirmado'?'cp-c':'cp-p'}">${(a.fecha_cita||'').slice(11,16)} ${esc((a.name||'').split(' ')[0])}</span>`).join('');
+    const more  = ap.length>2?`<span class="cpill cp-m">+${ap.length-2}</span>`:'';
+    return `<div class="${cls}" onclick="selectDay('${ds}')"><span class="cdn">${date.getDate()}</span>${pills}${more}</div>`;
+  }).join('');
+
+  if(calSelected) renderDayDetail(calSelected);
+}
+
+function selectDay(ds) {
+  calSelected = calSelected===ds?null:ds; renderCalendar();
+  if(calSelected) renderDayDetail(calSelected);
+  else document.getElementById('calDetail').innerHTML = '<div class="cal-empty-d"><div style="font-size:26px">📅</div><div>Seleccione un día</div></div>';
+}
+
+function renderDayDetail(ds) {
+  let ap;
+  if (calDocId) {
+    ap = (calDocBookings[ds]||[]).slice().sort((a,b)=>a.time_slot<b.time_slot?-1:1)
+      .map(b=>({name:b.patient_name||'Sin nombre',service:b.service||'—',professional:null,estado:b.estado||'pendiente',fecha_cita:b.date_slot+' '+b.time_slot,id:b.lead_id||null}));
+  } else {
+    ap = (calData[ds]||[]).slice().sort((a,b)=>(a.fecha_cita||'')<(b.fecha_cita||'')?-1:1);
+  }
+  const [y,m,d]=ds.split('-');
+  let lbl=new Date(+y,+m-1,+d).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1);
+  const el=document.getElementById('calDetail');
+  if(!ap.length){el.innerHTML=`<div class="cal-dd">${lbl}</div><div class="cal-empty-d" style="height:130px"><div style="font-size:20px">📭</div><div>Sin citas</div></div>`;return;}
+  el.innerHTML=`<div class="cal-dd">${lbl} · ${ap.length} cita${ap.length>1?'s':''}</div>`+
+    ap.map(a=>`<div class="cal-appt ${a.estado==='confirmado'?'conf':a.estado==='rechazado'||a.estado==='cancelado'?'canc':''}" ${a.id?`onclick="switchTab('citas',document.querySelector('.tab-btn'));openFicha(${a.id})"`:''}>
+      <div class="cal-at">${(a.fecha_cita||'').slice(11,16)||'—'}</div>
+      <div class="cal-an">${esc(a.name||'Sin nombre')}</div>
+      <div class="cal-as">${esc(a.service||'—')}${a.professional?' · '+esc(a.professional):''}</div>
+    </div>`).join('');
+}
+
+function renderProximasCitas() {
+  const ns = fmtDate(new Date());
+  const up = allLeads.filter(l=>l.fecha_cita&&l.fecha_cita.slice(0,10)>=ns&&l.estado!=='rechazado').sort((a,b)=>(a.fecha_cita||'')<(b.fecha_cita||'')?-1:1).slice(0,6);
+  const el = document.getElementById('proximasList');
+  if(!up.length){el.innerHTML='<div class="empty" style="padding:18px 0"><div class="ei">📭</div><div>Sin citas próximas</div></div>';return;}
+  el.innerHTML=up.map(l=>{
+    const dt=l.fecha_cita||'',ds=dt.slice(0,10),tp=dt.slice(11,16);
+    const [y,m,d]=ds.split('-');
+    const dl=new Date(+y,+m-1,+d).toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'});
+    return `<div class="prox-item" onclick="openFicha(${l.id})">
+      <div class="prox-dot${l.estado==='confirmado'?' c':''}"></div>
+      <div class="prox-info"><div class="prox-n">${esc(l.name||'Sin nombre')}</div><div class="prox-s">${esc(l.service||'—')}</div><div class="prox-d">${dl}${tp?' · '+tp:''}</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// LOAD
+// ════════════════════════════════════════════════════════════════════════════
+async function load() {
+  try {
+    const [sR,lR] = await Promise.all([api('GET','/api/stats'),api('GET','/api/leads')]);
+    const stats   = await sR.json();
+    allLeads      = await lR.json();
+
+    document.getElementById('kTotal').textContent = stats.total_leads;
+    document.getElementById('kConf').textContent  = stats.confirmados;
+    document.getElementById('kPend').textContent  = stats.pendientes??0;
+    document.getElementById('kMsgs').textContent  = stats.total_msgs;
+    document.getElementById('kHoy').textContent   = stats.leadsHoy??0;
+    document.getElementById('kRate').textContent  = stats.total_leads>0?Math.round(stats.confirmados/stats.total_leads*100)+'%':'0%';
+    document.getElementById('mPend').textContent  = stats.pendientes??0;
+    document.getElementById('mConf').textContent  = stats.confirmados;
+    document.getElementById('mRech').textContent  = stats.rechazados??0;
+    document.getElementById('mCont').textContent  = stats.contactados??0;
+
+    const svcs = [...new Set(allLeads.map(l=>l.service).filter(Boolean))].sort();
+    const ss = document.getElementById('filtroServicio'), sv = ss.value;
+    ss.innerHTML = '<option value="">Todos los tratamientos</option>' + svcs.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    ss.value = sv;
+
+    const bars = document.getElementById('svcBars');
+    if (!stats.top_servicios?.length) {
+      bars.innerHTML = '<div class="empty" style="padding:20px 0"><div class="ei">📊</div><div>Sin datos</div></div>';
+    } else {
+      const mx = stats.top_servicios[0].total;
+      bars.innerHTML = stats.top_servicios.map(s=>`<div class="svc-row">
+        <div class="svc-meta"><span class="svc-nm">${esc(s.service)}</span><span class="svc-cnt">${s.total}</span></div>
+        <div class="bar-bg"><div class="bar" style="width:${Math.round(s.total/mx*100)}%"></div></div>
+      </div>`).join('');
+    }
+
+    filtrar();
+    buildCalendarData(allLeads);
+    renderProximasCitas();
+    renderProfessionals();
+
+    document.getElementById('lastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES');
+  } catch(e) { if(e.message!=='UNAUTHORIZED') toast('Error al cargar datos','err'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TABLE
+// ════════════════════════════════════════════════════════════════════════════
+function renderTable(leads) {
+  const w = document.getElementById('tableWrap');
+  if (!leads.length) { w.innerHTML='<div class="empty"><div class="ei">🔍</div><div>Sin resultados</div></div>'; return; }
+
+  const rows = leads.map(l => {
+    const ph = (l.phone||'').replace('tg:','');
+    const ct = l.contact||ph;
+    const fd = (l.created_at||'').slice(0,16).replace('T',' ');
+    const urg = (l.service||'').toLowerCase().includes('urgencia');
+    return `<tr onclick="openFicha(${l.id})">
+      <td>
+        <div class="tn">${esc(l.name)||'—'}</div>
+        ${l.cita?`<span class="tc">${esc(l.cita)}</span>`:''}
+        ${l.dni?`<div class="tdi">${esc(l.dni)}</div>`:''}
+        <div class="ts">${fd}</div>
+      </td>
+      <td style="font-weight:500;color:${urg?'var(--err)':'var(--navy)'}">${esc(l.service)||'—'}</td>
+      <td class="ts">${ct||'—'}</td>
+      <td>${l.professional?`<span class="tdp">${esc(l.professional)}</span>`:'<span style="font-size:11.5px;color:var(--muted);font-style:italic">Sin asignar</span>'}</td>
+      <td><span style="font-size:12px;font-weight:500;color:var(--navy)">${esc(l.mutua||'—')}</span></td>
+      <td><span class="badge b-${l.estado}">${elbl(l.estado)}</span></td>
+      <td onclick="event.stopPropagation()">
+        <div class="acts">
+          ${l.estado!=='confirmado'?`<button class="act a-ok" onclick="cambiarEstado(${l.id},'confirmado')">✓</button>`:''}
+          ${l.estado!=='rechazado'?`<button class="act a-no" onclick="confirmarCancelar(${l.id})">✕</button>`:''}
+          <button class="act a-tel" onclick="llamar('${esc(ct)}')">📞</button>
+          <button class="act a-nt"  onclick="openNotes(${l.id})">📝</button>
+          <button class="act a-del" onclick="confirmarBorrar(${l.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  w.innerHTML=`<table><thead><tr>
+    <th>Paciente</th><th>Especialidad</th><th>Teléfono</th>
+    <th>Profesional</th><th>Cobertura</th><th>Estado</th><th>Acciones</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function elbl(e) { return {pendiente:'Pendiente',confirmado:'Confirmada',rechazado:'Cancelada',contactado:'Contactado'}[e]||e; }
+
+function filtrar() {
+  const es = document.getElementById('filtroEstado').value;
+  const sv = document.getElementById('filtroServicio').value;
+  const q  = (document.getElementById('busqueda').value||'').toLowerCase();
+  const fl = allLeads.filter(l => {
+    if(es&&l.estado!==es) return false;
+    if(sv&&l.service!==sv) return false;
+    if(q && ![l.name,l.contact,l.phone,l.cita,l.service,l.professional,l.dni].some(v=>v&&String(v).toLowerCase().includes(q))) return false;
+    return true;
+  });
+  renderTable(fl);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ACTIONS
+// ════════════════════════════════════════════════════════════════════════════
+async function cambiarEstado(id, estado) {
+  try {
+    const r = await api('PATCH',`/api/leads/${id}/estado`,{estado});
+    if(!r.ok) throw new Error();
+    toast({confirmado:'Cita confirmada',rechazado:'Cita cancelada',contactado:'Contactado'}[estado]||'Estado actualizado','ok');
+    await load();
+  } catch(e) { if(e.message!=='UNAUTHORIZED') toast('Error','err'); }
+}
+
+function confirmarCancelar(id) {
+  event.stopPropagation();
+  openConfirm('Cancelar cita','¿Seguro que desea cancelar esta cita?','Cancelar','btn-danger',()=>cambiarEstado(id,'rechazado'));
+}
+function confirmarBorrar(id) {
+  event.stopPropagation();
+  openConfirm('Eliminar registro','Se eliminarán todos los datos del paciente. Esta acción no se puede deshacer.','Eliminar','btn-danger',()=>borrar(id));
+}
+
+async function borrar(id) {
+  try {
+    const r = await api('DELETE',`/api/leads/${id}`);
+    if(!r.ok) throw new Error();
+    if(currentFichaId===id) closeFicha();
+    toast('Registro eliminado','info'); await load();
+  } catch(e) { if(e.message!=='UNAUTHORIZED') toast('Error','err'); }
+}
+
+function llamar(tel) {
+  if(!tel){toast('Teléfono no disponible','err');return;}
+  let c=String(tel).replace(/[^+\d]/g,'');
+  if(c.startsWith('+'))c=c.slice(1);
+  if(!/^34/.test(c))c='34'+c.replace(/^0+/,'');
+  window.open(`https://wa.me/${c}`,'_blank');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ════════════════════════════════════════════════════════════════════════════
+function exportCSV() {
+  if(!allLeads.length){toast('Sin datos','err');return;}
+  const h=['ID','Código','Paciente','DNI/NIE','Especialidad','Profesional','Horario','Teléfono','Cobertura','Estado','Notas','Fecha solicitud','Fecha cita'];
+  const rows=allLeads.map(l=>[
+    l.id,l.cita||'',l.name||'',l.dni||'',l.service||'',l.professional||'',l.horario||'',
+    (l.contact||l.phone||'').replace('tg:',''),l.mutua||'',elbl(l.estado),
+    (l.notes||'').replace(/\n/g,' '),(l.created_at||'').slice(0,16),l.fecha_cita||''
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`));
+  const csv=[h.join(','),...rows.map(r=>r.join(','))].join('\r\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=Object.assign(document.createElement('a'),{href:url,download:`pacientes_${new Date().toISOString().slice(0,10)}.csv`});
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV exportado','ok');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RBAC
+// ════════════════════════════════════════════════════════════════════════════
+let allRoles = [], allPermsData = [], currentRoleId = null, currentRoleIsSystem = false;
+let originalPerms = new Set();
+
+async function loadRbac() {
+  try {
+    const [rR, pR] = await Promise.all([
+      api('GET', '/api/rbac/roles'),
+      api('GET', '/api/rbac/permissions')
+    ]);
+    allRoles    = await rR.json();
+    allPermsData = await pR.json();
+    renderRoleList();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al cargar RBAC','err'); }
+}
+
+function renderRoleList() {
+  const ul = document.getElementById('rbacRoleList');
+  if (!allRoles.length) { ul.innerHTML = '<li style="padding:20px;text-align:center;color:var(--muted)">Sin roles</li>'; return; }
+  ul.innerHTML = allRoles.map(r => `
+    <li class="role-item${r.id === currentRoleId ? ' active' : ''}" onclick="selectRole(${r.id})">
+      <div class="role-dot" style="background:${r.is_system?'var(--blue)':'var(--purple)'}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${esc(r.name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(r.description||'')}</div>
+      </div>
+      ${r.is_system ? '<span class="role-sys">sistema</span>' : ''}
+    </li>`).join('');
+}
+
+function selectRole(id) {
+  const role = allRoles.find(r => r.id === id);
+  if (!role) return;
+  currentRoleId = id;
+  currentRoleIsSystem = !!role.is_system;
+  renderRoleList();
+
+  document.getElementById('rbacPermTitle').textContent = `Permisos — ${role.name}`;
+  document.getElementById('rbacDeleteRoleBtn').style.display = role.is_system ? 'none' : '';
+  document.getElementById('rbacPermCard').style.display = '';
+
+  originalPerms = new Set(role.permissions || []);
+
+  // Group by category
+  const cats = {};
+  allPermsData.forEach(p => {
+    if (!cats[p.category]) cats[p.category] = [];
+    cats[p.category].push(p);
+  });
+
+  const isSuperadmin = role.name === 'superadmin';
+
+  document.getElementById('rbacPermGrid').innerHTML = Object.entries(cats).map(([cat, perms]) => {
+    const catChecked = perms.filter(p => originalPerms.has(p.key)).length;
+    return `<div class="perm-cat">
+      <div class="perm-cat-hd">
+        <span>${esc(cat)}</span>
+        <span style="font-size:10px;color:var(--muted)">${catChecked}/${perms.length}</span>
+      </div>
+      ${perms.map(p => `
+        <div class="perm-row">
+          <input type="checkbox" class="perm-cb" id="perm_${p.id}" data-key="${esc(p.key)}"
+            ${originalPerms.has(p.key) || isSuperadmin ? 'checked' : ''}
+            ${isSuperadmin ? 'disabled title="Superadmin tiene todos los permisos"' : ''}>
+          <div>
+            <div class="perm-key">${esc(p.key)}</div>
+            <div class="perm-desc">${esc(p.description||'')}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function rbacCancel() {
+  currentRoleId = null;
+  document.getElementById('rbacPermCard').style.display = 'none';
+  renderRoleList();
+}
+
+async function saveRolePerms() {
+  if (!currentRoleId) return;
+  const checked = [...document.querySelectorAll('#rbacPermGrid .perm-cb:checked:not(:disabled)')].map(cb => cb.dataset.key);
+  try {
+    const r = await api('PUT', `/api/rbac/roles/${currentRoleId}/permissions`, { permissions: checked });
+    if (!r.ok) { const e=await r.json(); toast(e.error||'Error','err'); return; }
+    toast('Permisos guardados','ok');
+    await loadRbac();
+    selectRole(currentRoleId);
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al guardar permisos','err'); }
+}
+
+function openAddRole() {
+  document.getElementById('roleMTitle').textContent = 'Nuevo rol personalizado';
+  document.getElementById('roleName').value = '';
+  document.getElementById('roleDesc').value = '';
+  document.getElementById('roleOv').classList.add('open');
+  setTimeout(() => document.getElementById('roleName').focus(), 50);
+}
+
+function closeRoleModal() {
+  document.getElementById('roleOv').classList.remove('open');
+}
+document.getElementById('roleOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeRoleModal(); });
+
+async function saveNewRole() {
+  const name = document.getElementById('roleName').value.trim();
+  const desc = document.getElementById('roleDesc').value.trim();
+  if (!name) { toast('El nombre es obligatorio','err'); return; }
+  try {
+    const r = await api('POST', '/api/rbac/roles', { name, description: desc });
+    if (!r.ok) { const e=await r.json(); toast(e.error||'Error','err'); return; }
+    toast('Rol creado','ok');
+    closeRoleModal();
+    await loadRbac();
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error','err'); }
+}
+
+async function deleteCurrentRole() {
+  if (!currentRoleId || currentRoleIsSystem) return;
+  const role = allRoles.find(r => r.id === currentRoleId);
+  openConfirm('Eliminar rol', `¿Eliminar el rol "${role?.name}"? Los usuarios con este rol perderán sus permisos.`, 'Eliminar', 'btn-danger', async () => {
+    try {
+      const r = await api('DELETE', `/api/rbac/roles/${currentRoleId}`);
+      if (!r.ok) { const e=await r.json(); toast(e.error||'Error','err'); return; }
+      toast('Rol eliminado','info');
+      currentRoleId = null;
+      document.getElementById('rbacPermCard').style.display = 'none';
+      await loadRbac();
+    } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error','err'); }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// AUDIT LOG
+// ════════════════════════════════════════════════════════════════════════════
+let auditOffset = 0;
+const AUDIT_LIMIT = 50;
+let auditTotalRows = 0;
+let auditRawLogs = [];
+
+async function loadAudit() {
+  auditOffset = 0;
+  await fetchAudit();
+}
+
+async function fetchAudit() {
+  const entityType = document.getElementById('auditEntityFilter').value;
+  const username   = (document.getElementById('auditUserFilter').value || '').trim();
+  let url = `/api/audit-logs?limit=${AUDIT_LIMIT}&offset=${auditOffset}`;
+  if (entityType) url += `&entity_type=${encodeURIComponent(entityType)}`;
+  if (username)   url += `&username=${encodeURIComponent(username)}`;
+  try {
+    const r = await api('GET', url);
+    if (!r.ok) return;
+    const data = await r.json();
+    auditRawLogs   = data.logs || [];
+    auditTotalRows = data.total || 0;
+    renderAuditTable();
+    renderAuditPager();
+    document.getElementById('auditTotal').textContent = `${auditTotalRows} registros`;
+  } catch(e) { if (e.message !== 'UNAUTHORIZED') toast('Error al cargar auditoría','err'); }
+}
+
+function auditPage(dir) {
+  auditOffset = Math.max(0, auditOffset + dir * AUDIT_LIMIT);
+  fetchAudit();
+}
+
+function renderAuditTable() {
+  const w = document.getElementById('auditTableWrap');
+  if (!auditRawLogs.length) {
+    w.innerHTML = '<div class="empty"><div class="ei">🔍</div><div>Sin registros de auditoría</div></div>';
+    return;
+  }
+  const ENTITY_LABELS = { lead:'Paciente', professional:'Profesional', booking:'Reserva', user:'Usuario' };
+  const actionClass = a => {
+    if (/^CREATE/.test(a)) return 'aa-create';
+    if (/^DELETE|DEACTIVATE/.test(a)) return 'aa-delete';
+    if (/^UPDATE|CHANGE|ASSIGN|ACTIVATE/.test(a)) return 'aa-update';
+    return 'aa-other';
+  };
+  const rows = auditRawLogs.map(l => {
+    const dt = (l.created_at || '').slice(0, 16).replace('T',' ');
+    const entity = ENTITY_LABELS[l.entity_type] || l.entity_type;
+    let oldStr = '', newStr = '';
+    try { oldStr = l.old_data ? JSON.stringify(JSON.parse(l.old_data)) : ''; } catch { oldStr = l.old_data || ''; }
+    try { newStr = l.new_data ? JSON.stringify(JSON.parse(l.new_data)) : ''; } catch { newStr = l.new_data || ''; }
+    return `<tr>
+      <td style="white-space:nowrap;font-size:11px;color:var(--muted)">${dt}</td>
+      <td style="font-size:12.5px;font-weight:600">${esc(l.username)}</td>
+      <td><span style="font-size:10.5px;color:var(--muted)">${esc(l.role||'—')}</span></td>
+      <td><span class="audit-action ${actionClass(l.action)}">${esc(l.action)}</span></td>
+      <td><span style="font-size:11.5px;font-weight:500">${esc(entity)}</span> <span style="font-size:10.5px;color:var(--muted)">#${esc(l.entity_id||'')}</span></td>
+      <td><div class="audit-data" title="${esc(oldStr)}">${esc(oldStr)}</div></td>
+      <td><div class="audit-data" title="${esc(newStr)}">${esc(newStr)}</div></td>
+      <td style="font-size:10.5px;color:var(--muted)">${esc(l.ip||'—')}</td>
+    </tr>`;
+  }).join('');
+  w.innerHTML = `<table><thead><tr>
+    <th>Fecha / Hora</th><th>Usuario</th><th>Rol</th><th>Acción</th>
+    <th>Entidad</th><th>Antes</th><th>Después</th><th>IP</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderAuditPager() {
+  const pager = document.getElementById('auditPager');
+  const label = document.getElementById('auditPageLabel');
+  const prev  = document.getElementById('auditPrevBtn');
+  const next  = document.getElementById('auditNextBtn');
+  const pages = Math.ceil(auditTotalRows / AUDIT_LIMIT) || 1;
+  const cur   = Math.floor(auditOffset / AUDIT_LIMIT) + 1;
+  if (pages > 1) {
+    pager.style.display = 'flex';
+    label.textContent = `Página ${cur} de ${pages}`;
+    prev.disabled = auditOffset === 0;
+    next.disabled = auditOffset + AUDIT_LIMIT >= auditTotalRows;
+  } else {
+    pager.style.display = 'none';
+  }
+}
+
+function exportAuditCSV() {
+  if (!auditRawLogs.length) { toast('Sin datos','err'); return; }
+  const h = ['Fecha','Usuario','Rol','Acción','Entidad','ID','Antes','Después','IP'];
+  const rows = auditRawLogs.map(l => [
+    (l.created_at||'').slice(0,16), l.username||'', l.role||'', l.action||'',
+    l.entity_type||'', l.entity_id||'', l.old_data||'', l.new_data||'', l.ip||''
+  ].map(v => `"${String(v).replace(/"/g,'""')}"`));
+  const csv = [h.join(','), ...rows.map(r=>r.join(','))].join('\r\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), {href:url, download:`auditoria_${new Date().toISOString().slice(0,10)}.csv`});
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV exportado','ok');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// UTIL
+// ════════════════════════════════════════════════════════════════════════════
+function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ════════════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════════════
+initCalendar();
+initAgendaWeek();
+
+checkAuth().then(ok => {
+  if (ok) {
+    loadProfessionals();
+    load();
+  }
+});
+
+setInterval(load, 15000);
+</script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+================================================================================
+  CENTRE MÈDIC ESPLUGUES — BOT DE CITAS
+  Informe de desarrollo · Versión 1.0
+  Fecha: junio 2026
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+RESUMEN EJECUTIVO
+────────────────────────────────────────────────────────────────────────────────
+
+Se ha desarrollado desde cero un sistema completo de gestión de citas médicas
+para el Centre Mèdic Esplugues, compuesto por un bot de Telegram para pacientes
+y un panel web de administración para el equipo clínico y de gestión.
+
+El sistema ha pasado de ser un prototipo monolítico a una plataforma de nivel
+profesional con control de acceso por roles, trazabilidad completa de acciones,
+gestión de agenda por médico y base multisede.
+
+────────────────────────────────────────────────────────────────────────────────
+1. QUÉ SE HA CONSTRUIDO
+────────────────────────────────────────────────────────────────────────────────
+
+1.1 BOT DE TELEGRAM (canal paciente)
+--------------------------------------
+
+· Flujo conversacional guiado paso a paso:
+    Menú principal → Especialidad → Nombre → Teléfono → DNI/NIE → Mutua → Horario
+
+· Detección de especialidad: reconoce 18 especialidades por texto libre
+  o por número de menú (medicina de familia, pediatría, fisioterapia,
+  psicología, dermatología, ginecología, traumatología, nutrición, cardiología,
+  neurología, neumología, odontología, oftalmología, ORL, urología,
+  reumatología, urgencias, otras).
+
+· Menú de mutuas paginado (3 páginas × 8 aseguradoras):
+  Página 1: Particular, Adeslas, Asisa, AXA, DKV, Mapfre, Sanitas, Cigna
+  Página 2: Mútua de Terrassa, Fiatc, Allianz, Caser, Generali, Helvetia,
+            Zurich, MGS
+  Página 3: Berkley, IMQ, Fremap/Fraternidad, Previsora, Asistencia Sanitaria
+            Col·legial, Vital Seguro
+  Tecla 9 = pasar página · El paciente también puede escribir la mutua
+  libremente y el sistema la reconoce o la acepta como texto.
+
+· Validación robusta de nombre (filtro de palabras prohibidas, mínimo de letras
+  únicas, longitud), teléfono (formatos ES: +34, 0034, 9 dígitos), DNI (8d+L)
+  y NIE (X/Y/Z+7d+L con verificación del dígito de control).
+
+· Codificación de cita única (CITA-XXXX) generada automáticamente. El paciente
+  puede consultar y cancelar su cita introduciendo el código.
+
+· Modificación de cita: el paciente puede cambiar especialidad u horario usando
+  su código. El sistema detecta la cita existente y la actualiza.
+
+· Notificaciones automáticas al equipo (Telegram) al recibir nuevas citas
+  y al confirmarlas. El médico o admin puede escribir /confirmar <ID> desde
+  Telegram para confirmar directamente.
+
+· Comandos de administración por Telegram:
+    /leads       — lista de citas pendientes
+    /confirmar X — confirma la cita con ID X
+
+
+1.2 PANEL WEB DE ADMINISTRACIÓN
+----------------------------------
+
+Interfaz web completa accesible desde el navegador, con las siguientes secciones:
+
+TAB CITAS
+· Lista de todas las solicitudes de cita con filtros por estado
+  (pendiente / confirmado / rechazado / contactado).
+· Ficha de paciente expandible: notas clínicas, asignación de médico,
+  cambio de estado, eliminación con confirmación.
+· KPIs en tiempo real: total pacientes, confirmadas, pendientes, conversión,
+  mensajes Telegram, nuevas hoy.
+· Panel de próximas citas ordenado por fecha.
+
+TAB AGENDA
+· Vista semanal por médico: grid hora × día con slots libres / ocupados.
+· Editor de horario por médico: días activos, hora inicio/fin, duración de slot
+  (15/20/30/60 min). Se guarda por médico y día de la semana.
+· Navegación entre semanas. Hoy destacado visualmente.
+· Al hacer clic en una cita ocupada se abre la ficha del paciente.
+
+TAB PROFESIONALES
+· Alta, edición y baja lógica de médicos.
+· Especialidad asignada mediante desplegable con 24 especialidades normalizadas
+  (evita datos inconsistentes por texto libre).
+· Acceso rápido al editor de horario desde la tarjeta del médico.
+
+TAB CALENDARIO
+· Vista mensual de todas las citas con navegación mes a mes.
+· Filtro por médico: al seleccionar un doctor se muestran solo sus reservas
+  del mes desde la tabla de bookings (agenda confirmada), con hora, nombre de
+  paciente y servicio. Al no seleccionar médico se muestran todos los leads.
+· Detalle del día al hacer clic: lista de citas ordenadas por hora. Si la cita
+  está vinculada a un lead, abre su ficha.
+
+TAB USUARIOS
+· Gestión de cuentas de acceso al panel.
+· Crear, editar nombre/rol, activar/desactivar, cambiar contraseña.
+· Cada usuario solo puede cambiar su propia contraseña; superadmin y gestores
+  pueden cambiar la de cualquiera.
+
+TAB AUDITORÍA
+· Registro inmutable de todas las acciones: quién, desde qué IP, qué acción,
+  sobre qué entidad, cuándo, con estado anterior y posterior.
+· Filtros por tipo de entidad y por usuario.
+· Paginación.
+
+TAB ROLES (solo superadmin y gestores con permiso roles.ver)
+· RBAC dinámico: roles y permisos gestionados desde la base de datos.
+· Asignación visual de permisos por categoría (citas, agenda, profesionales,
+  horarios, usuarios, roles, auditoría, sistema).
+· No se pueden eliminar ni renombrar los roles del sistema.
+· Los cambios de permisos invalidan la caché inmediatamente.
+
+
+1.3 BACKEND Y ARQUITECTURA
+-----------------------------
+
+· Node.js + Express, modular: routes/, middleware/, services/
+· Base de datos: SQLite (better-sqlite3, síncrono, sin ORM)
+· API versionada: /api/v1/* y /api/* (alias legacy para compatibilidad)
+
+Tablas principales:
+  leads          — solicitudes de cita del bot
+  messages       — historial conversacional por paciente
+  professionals  — médicos y especialistas
+  schedules      — disponibilidad semanal por médico
+  bookings       — citas confirmadas con slot fecha+hora
+  users          — cuentas de acceso al panel
+  roles          — roles del sistema (6 sistema + ilimitados custom)
+  permissions    — catálogo de 20 permisos en 8 categorías
+  role_permissions — tabla de relación rol↔permiso
+  audit_logs     — registro de auditoría inmutable
+  clinics        — base para soporte multisede
+
+Roles del sistema creados:
+  superadmin     — acceso total, no puede ser eliminado
+  admin          — gestión completa operativa
+  manager        — supervisión y confirmaciones
+  administrativo — gestión de citas y notas
+  enfermeria     — vista y notas, sin confirmar/cancelar
+  doctor         — solo vista de agenda propia
+
+Seguridad:
+  · Contraseñas hasheadas con PBKDF2-SHA512, 10.000 iteraciones, salt aleatorio
+  · Sesiones en memoria (Map) con TTL de 8 horas, limpieza cada 30 min
+  · Caché de permisos con TTL de 5 minutos, invalidación manual al editar roles
+  · Protección anti-doble reserva: a nivel DB (UNIQUE professional+fecha+hora)
+    y a nivel de aplicación (paciente no puede tener dos citas simultáneas)
+  · Todas las rutas protegidas con requireAuth + requirePerm por permiso
+  · Registro de IP en cada acción auditada
+
+
+────────────────────────────────────────────────────────────────────────────────
+2. BUGS CORREGIDOS DURANTE EL DESARROLLO
+────────────────────────────────────────────────────────────────────────────────
+
+· hasPerm roto en leads.js: referenciaba _loadPerms (no exportada), degradaba
+  a lista hardcodeada de roles. Reescrito usando db.getUserPermissions().
+
+· /api/patient/lookup con ruta incorrecta: el router montado en /api/leads
+  exponía el endpoint en /api/leads/patient/lookup en vez de /api/patient/lookup.
+  Solucionado con reescritura de req.url antes de delegar al router.
+
+· seedAdmin no toleraba bases de datos existentes sin superadmin: si había
+  usuarios pero ninguno era superadmin, el sistema arrancaba sin admin.
+  Corregido: promueve automáticamente al primer usuario.
+
+· Login y /me no devolvían los permisos: el frontend decidía visibilidad de
+  tabs usando solo role === 'superadmin'. Corregido: ambos endpoints devuelven
+  el array de permisos; el frontend usa hasPerm() genérico.
+
+· /api/stats legacy sin protección de permiso: la ruta heredada no tenía
+  requirePerm('citas.ver'), permitiendo acceso con cualquier sesión válida.
+  Añadido requirePerm.
+
+· importación de requirePerm ausente en index.js: se usaba la función sin
+  haberla importado. Añadida a la desestructuración del require.
+
+
+────────────────────────────────────────────────────────────────────────────────
+3. QUÉ SE PODRÍA MEJORAR (priorizado)
+────────────────────────────────────────────────────────────────────────────────
+
+PRIORIDAD ALTA — Impacto operativo inmediato
+----------------------------------------------
+
+A) CONFIRMACIÓN DE CITA CON SLOT REAL DE AGENDA
+   Ahora el paciente solicita día/hora preferido, pero el médico confirma
+   sin necesidad de asignar un slot en la tabla bookings. El calendario de
+   agenda y el de citas son dos sistemas paralelos.
+   Mejora: al confirmar una cita desde el panel, obligar a seleccionar un slot
+   libre de la agenda del médico asignado. Eso crea el booking y evita
+   solapamientos reales. La confirmación por Telegram (/confirmar) también
+   debería disparar esta asignación.
+
+B) NOTIFICACIONES DE RECORDATORIO AL PACIENTE
+   No existe ningún sistema de recordatorio automático. Los pacientes olvidan
+   las citas.
+   Mejora: job programado (cron) que envíe mensaje de recordatorio por Telegram
+   24h y 2h antes de la cita confirmada. Configurable desde el panel.
+
+C) EXPORTACIÓN CSV DE CITAS
+   El permiso citas.exportar existe en el sistema pero no hay endpoint ni botón
+   en el panel. El equipo no puede extraer datos para informes.
+   Mejora: endpoint GET /api/v1/leads/export con filtros de fecha/estado
+   y botón de descarga en el tab Citas.
+
+D) BÚSQUEDA Y FILTROS AVANZADOS EN CITAS
+   El filtro actual es solo por estado. No se puede buscar por nombre, DNI,
+   teléfono, mutua, fecha, médico o servicio.
+   Mejora: barra de búsqueda con filtros combinables y rango de fechas.
+
+
+PRIORIDAD MEDIA — Calidad y experiencia
+------------------------------------------
+
+E) MULTICLÍNICA REAL
+   La tabla clinics existe y clinic_id está en users y leads, pero las queries
+   no filtran por clínica. Todos los usuarios ven todos los datos.
+   Mejora: filtrar todas las queries de leads, professionals y bookings por
+   clinic_id del usuario autenticado. El superadmin ve todo.
+
+F) SESIONES PERSISTENTES
+   Las sesiones se guardan en memoria (Map). Al reiniciar el servidor todos
+   los usuarios quedan deslogueados.
+   Mejora: migrar sesiones a SQLite (tabla sessions) o a Redis para entornos
+   con múltiples instancias.
+
+G) SOPORTE WHATSAPP
+   El canal actual es solo Telegram. La mayoría de pacientes en España usan
+   WhatsApp.
+   Mejora: integrar WhatsApp Business API (Meta) o Twilio. La lógica de
+   conversación (ai.js) es independiente del canal, el adaptador sería mínimo.
+
+H) GESTIÓN DE BAJAS / CANCELACIONES DESDE EL PANEL
+   Cuando el médico cancela, el paciente no recibe notificación automática.
+   Mejora: al cambiar estado a rechazado/cancelado desde el panel, enviar
+   mensaje de Telegram al paciente con la razón y opción de reagendar.
+
+I) HISTORIAL DE CONVERSACIÓN VISIBLE EN FICHA
+   La tabla messages guarda toda la conversación pero el panel no la muestra.
+   Mejora: en la ficha del paciente, añadir una pestaña "Conversación" que
+   muestre el hilo completo de mensajes con el bot.
+
+
+PRIORIDAD BAJA — Escalabilidad y operativa avanzada
+------------------------------------------------------
+
+J) AUTENTICACIÓN DE DOS FACTORES (2FA)
+   Las cuentas del panel están protegidas solo con usuario/contraseña.
+   Mejora: TOTP (Google Authenticator) opcional por usuario, especialmente
+   para superadmin y roles con acceso a datos sensibles.
+
+K) GESTIÓN DE VACACIONES Y AUSENCIAS DEL MÉDICO
+   No hay forma de marcar que un médico estará ausente una semana concreta.
+   Los slots aparecen disponibles aunque el médico no esté.
+   Mejora: tabla de excepciones de horario (fecha inicio, fecha fin, motivo)
+   que bloquee la disponibilidad en el rango indicado.
+
+L) ESTADÍSTICAS Y REPORTING AVANZADO
+   El panel solo muestra 6 KPIs básicos. No hay tendencias, gráficos ni
+   comparativas por período.
+   Mejora: dashboard analítico con evolución temporal, top especialidades,
+   tasa de conversión por semana, tiempo medio de confirmación.
+
+M) APP MÓVIL O PWA
+   El panel web no está optimizado para móvil. El equipo de recepción usa
+   el teléfono.
+   Mejora: convertir el panel en una PWA (Progressive Web App) con manifest
+   e instalable en home screen, con vista de citas simplificada para móvil.
+
+N) INTEGRACIÓN CON HISTORIA CLÍNICA
+   El sistema gestiona la cita pero no conecta con el historial clínico del
+   paciente ni con sistemas HIS existentes.
+   Mejora: API de integración con sistemas como Doctoralia, Gesden, Clinicalia
+   o historias propias vía HL7/FHIR (largo plazo).
+
+O) TESTS AUTOMATIZADOS
+   No existe suite de tests. Cualquier cambio en db.js o ai.js puede romper
+   el flujo sin que nadie lo detecte hasta que un paciente lo sufra.
+   Mejora: tests de integración para los flujos críticos del bot (happy path,
+   DNI inválido, mutua no reconocida) y tests de API para los endpoints
+   protegidos con RBAC.
+
+
+────────────────────────────────────────────────────────────────────────────────
+4. DEUDA TÉCNICA CONOCIDA
+────────────────────────────────────────────────────────────────────────────────
+
+· El campo professional en leads es un nombre en texto libre (string), no una
+  FK a la tabla professionals. Si se renombra un médico, las citas antiguas
+  quedan desincronizadas. Migrar a professional_id INTEGER.
+
+· Las sesiones del bot de Telegram (ai.js) y las del panel web son dos sistemas
+  de sesión distintos e independientes. Están bien separados pero podría
+  confundir si se añade autenticación al canal del paciente.
+
+· El archivo public/index.html es un único archivo de ~2000 líneas con HTML,
+  CSS y JavaScript inline. Debería separarse en componentes o al menos en
+  archivos distintos (app.js, styles.css) para facilitar el mantenimiento.
+
+· No hay rate limiting en el bot ni en la API. Un usuario malintencionado
+  puede hacer flood de mensajes o peticiones.
+
+· Los logs van solo a stdout/console. En producción deberían ir a un sistema
+  de logging persistente (archivo rotativo o servicio externo).
+
+
+────────────────────────────────────────────────────────────────────────────────
+5. ESTADO ACTUAL DEL PROYECTO
+────────────────────────────────────────────────────────────────────────────────
+
+  Sistema funcional y desplegable en producción.
+  Canal Telegram operativo con flujo de citas completo.
+  Panel web con autenticación, RBAC dinámico y auditoría.
+  Agenda semanal por médico con detección de solapamientos.
+  Calendario mensual con filtro por médico.
+  22 mutuas cubiertas con paginación.
+  24 especialidades normalizadas.
+  6 roles del sistema + creación ilimitada de roles personalizados.
+  20 permisos granulares en 8 categorías.
+  Base de datos multisede preparada (pendiente de activar en queries).
+  API versionada /api/v1/* activa junto a endpoints legacy.
+
+  Siguiente paso recomendado: punto A (confirmación con slot real de agenda)
+  y punto B (recordatorios automáticos). Son las mejoras con mayor impacto
+  en la operativa diaria de la clínica y en la experiencia del paciente.
+
+================================================================================
+  Fin del informe
+================================================================================

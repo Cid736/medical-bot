@@ -1,0 +1,214 @@
+================================================================================
+                    RESUMEN DEL DENTAL BOT - PROYECTO COMPLETO
+================================================================================
+
+🎯 DESCRIPCIÓN GENERAL
+================================================================================
+Bot de Telegram para capturar leads en clínicas dentales con IA automática 
+(Google Gemini) para responder consultas, gestionar citas y guardar datos de 
+pacientes en base de datos SQLite.
+
+📦 STACK TECNOLÓGICO (5 dependencias)
+================================================================================
+- node-telegram-bot-api  → Conexión con Telegram vía polling
+- @google/generative-ai  → Respuestas con IA (Gemini, gratis)
+- better-sqlite3         → Base de datos local SQLite
+- express                → Dashboard web + API REST
+- dotenv                 → Gestión de variables de entorno
+
+✅ FUNCIONALIDADES IMPLEMENTADAS
+================================================================================
+
+1. BOT TELEGRAM AUTOMÁTICO
+   - Responde automáticamente a mensajes privados
+   - Motor de conversación por estados (máquina de estados)
+   - Detecta automáticamente el servicio solicitado:
+     * Limpieza
+     * Blanqueamiento
+     * Revisión
+     * Ortodoncia
+     * Implante
+     * Urgencia
+   - Valida horarios de atención (lunes-viernes 9-20h, sábados 9-14h, no domingos)
+   - Extrae información: nombre, teléfono, servicio, horario de cita
+   - Envía confirmaciones automáticas al usuario
+
+2. GESTIÓN DE LEADS
+   - Guarda leads automáticamente en base de datos
+   - Estados: pendiente → confirmado
+   - Comando /leads para admins: lista todos los leads pendientes
+   - Comando /confirmar <ID> para admins: confirma un lead y notifica al usuario
+   - Notifica a admins cuando se captura un nuevo lead
+
+3. SERVICIOS DENTALES (Catálogo Predefinido)
+   - Limpieza dental (60€)
+   - Blanqueamiento (180€)
+   - Revisión (gratuita)
+   - Ortodoncia (desde 1.200€)
+   - Implante dental (desde 900€)
+   - Urgencia (según caso)
+
+4. MOTOR DE IA (Gemini + Fallback)
+   - Integración con Google Gemini API (gratuita)
+   - System prompt personalizable por clínica
+   - Respuestas predefinidas en JSON como fallback (sin API funciona igual)
+   - Historial de mensajes por usuario
+
+5. BASE DE DATOS SQLITE
+   Tabla "leads":
+   - id (INTEGER PRIMARY KEY)
+   - phone (TEXT)
+   - name (TEXT)
+   - service (TEXT)
+   - horario (TEXT)
+   - contact (TEXT)
+   - estado (TEXT: "pendiente" o "confirmado")
+   - created_at (DATETIME)
+
+   Tabla "messages":
+   - id (INTEGER PRIMARY KEY)
+   - phone (TEXT)
+   - role (TEXT: "user" o "assistant")
+   - content (TEXT)
+   - created_at (DATETIME)
+
+6. DASHBOARD WEB (http://localhost:3000)
+   KPIs en tiempo real:
+   - Total leads
+   - Leads confirmados
+   - Mensajes recibidos
+   - Tasa de conversión
+
+   Tabla de pacientes captados:
+   - Nombre, servicio, teléfono, fecha, estado (pendiente/confirmado)
+   - Botón actualizar
+
+   Gráfico de servicios más pedidos:
+   - Barras horizontales con conteo de cada servicio
+
+7. API REST (Express)
+   - GET /api/stats → Retorna KPIs (total_leads, confirmados, total_msgs, top_servicios)
+   - GET /api/leads → Retorna todos los leads
+   - Servidor web en puerto 3000 (configurable via PORT en .env)
+
+8. COMANDOS ADMIN (Telegram)
+   - /leads → Lista leads pendientes
+   - /confirmar <ID> → Confirma un lead
+   - Control de acceso por TELEGRAM_ADMIN_IDS
+
+🔧 CONFIGURACIÓN
+================================================================================
+
+Variables de entorno (.env):
+TELEGRAM_TOKEN=xxx              # Token del bot (requerido)
+TELEGRAM_CHAT_ID=xxx            # Chat para notificaciones
+TELEGRAM_ADMIN_IDS=xxx,yyy      # Admins separados por coma
+GEMINI_API_KEY=xxx              # (Opcional) API key de Google
+PORT=3000                       # Puerto del dashboard
+
+📁 ESTRUCTURA DEL PROYECTO
+================================================================================
+
+dental-bot/
+├── index.js                 → Bot principal + servidor Express
+├── db.js                    → SQLite (schemas + CRUD operations)
+├── ai.js                    → Motor de conversación + Gemini
+├── public/
+│   ├── index.html           → Dashboard web (KPIs, tabla, gráficos)
+│   ├── scan.html            → (Otros archivos)
+│   └── qr/
+├── package.json             → Dependencias
+├── Dockerfile               → Despliegue en contenedor
+├── docker-compose.yml
+├── README.md
+└── DOCKER.md
+
+🚀 INSTALACIÓN Y USO
+================================================================================
+
+1. Instalar dependencias:
+   npm install
+
+2. Copiar y configurar .env:
+   cp .env.example .env
+   # Edita .env e inserta TELEGRAM_TOKEN y TELEGRAM_CHAT_ID
+
+3. Arrancar:
+   npm start
+
+El bot estará listo en Telegram y el dashboard en http://localhost:3000
+
+💡 CARACTERÍSTICAS AVANZADAS
+================================================================================
+
+✓ Sin límites de API
+  - Gemini es gratis
+  - Fallback local funciona sin API
+
+✓ Detección inteligente
+  - Entiende variaciones (1/limpieza, 2/blanqueamiento, etc.)
+  - Normaliza tildes y caracteres especiales
+
+✓ Validación horaria
+  - Rechaza sábados y domingos
+  - Valida horarios según día de la semana
+
+✓ Historial de mensajes
+  - Guarda conversación completa por usuario
+  - Context awareness en respuestas IA
+
+✓ Docker Ready
+  - Incluye Dockerfile con Chromium preinstalado
+  - docker-compose.yml configurado
+
+✓ Personalizable
+  - Solo edita ai.js para cambiar clínica, servicios y precios
+  - SYSTEM_PROMPT personalizable
+  - FLOWS ajustables
+
+ARCHIVOS CLAVE
+================================================================================
+
+index.js:
+- Inicializa bot de Telegram con polling
+- Maneja eventos de mensajes privados
+- Procesa comandos /leads y /confirmar para admins
+- Guarda mensajes y leads en BD
+- Inicia servidor Express en puerto 3000
+- Rutas: /api/stats, /api/leads, /public/* (dashboard)
+
+db.js:
+- Abre/crea dental_bot.db (SQLite)
+- Tablas: leads, messages
+- Métodos: saveLead, confirmLead, saveMessage, getHistory, getStats, etc.
+
+ai.js:
+- 6 servicios dentales con precios
+- Machine de estados por teléfono (sessions Map)
+- detectServicio() → identifica servicio de un texto
+- parsePhone() y parseHorario() → valida entrada
+- validarHorario() → respeta horarios de atención
+- getReplyWithPhone() → orquesta conversación completa
+- getReplyWithGemini() → llama a API de Google
+- extractCita() → extrae datos para guardar lead
+
+public/index.html:
+- Dashboard responsivo en vanilla JavaScript
+- KPIs con números grandes (font-size: 28px)
+- Tabla de leads con estados (pendiente/confirmado)
+- Gráfico de servicios con barras horizontales
+- Fetch a /api/stats y /api/leads
+- Botón refresh para actualizar datos
+- Indicador de estado en vivo (dot pulse)
+
+Dockerfile:
+- Base: node:20-slim
+- Pre-instala Chromium y dependencias
+- WORKDIR /app
+- npm install --production
+- Expone puerto (variable)
+- CMD: npm start
+
+================================================================================
+Última actualización: 29/05/2026
+================================================================================

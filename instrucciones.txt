@@ -1,0 +1,272 @@
+# PROMPT — Evolución de "Centre Mèdic Esplugues · Bot de Citas" a plataforma SaaS médica de nivel profesional
+
+> Briefing de Product Manager para equipo de desarrollo / agente de IA.
+> Referencia competitiva: **GESMED / Gesmedic** (gestión clínica integral española).
+> Objetivo: igualar su cobertura funcional y superarlo en experiencia conversacional, automatización y precio.
+
+---
+
+## 0. Rol y misión
+
+Actúa como **ingeniero/a full-stack senior con criterio de producto y conocimiento del sector salud en España**. Vas a evolucionar un sistema ya funcional (bot de Telegram + panel web de gestión de citas) hasta convertirlo en una plataforma de gestión de clínicas multisede, comparable a GESMED, GESCEMED o Soft4Care, pero con un canal conversacional (WhatsApp/Telegram) como diferencial.
+
+No es un proyecto nuevo: hay código en producción. Tu trabajo es **endurecer, completar y profesionalizar lo existente sin romper lo que ya funciona**, respetando la deuda técnica documentada y migrándola de forma controlada.
+
+Antes de escribir código: si una decisión tiene implicaciones legales (RGPD/datos de salud), de seguridad o de pérdida de datos, **párate y explícita el supuesto** en lugar de asumir.
+
+---
+
+## 1. Estado actual del producto (punto de partida)
+
+Sistema funcional y desplegable. Resumen del stack y capacidades ya existentes:
+
+- **Canal paciente:** bot de Telegram con flujo guiado (especialidad → datos → mutua → horario), 18 especialidades por texto libre, 22 mutuas paginadas, validación de DNI/NIE/teléfono, código de cita `CITA-XXXX`, consulta/cancelación/modificación por código, notificaciones al equipo y comandos `/leads` y `/confirmar`.
+- **Panel web:** tabs de Citas, Agenda (semanal por médico con slots), Profesionales, Calendario (mensual), Usuarios, Auditoría y Roles (RBAC dinámico). KPIs en tiempo real.
+- **Backend:** Node.js + Express modular, SQLite (better-sqlite3, síncrono), API versionada `/api/v1/*` con alias legacy.
+- **Seguridad existente:** PBKDF2-SHA512 (10k iteraciones), sesiones en memoria con TTL 8h, caché de permisos 5 min, anti-doble-reserva a nivel DB y app, auditoría inmutable con IP.
+- **Modelo de datos:** `leads`, `messages`, `professionals`, `schedules`, `bookings`, `users`, `roles`, `permissions`, `role_permissions`, `audit_logs`, `clinics`.
+- **6 roles del sistema** (superadmin, admin, manager, administrativo, enfermeria, doctor) + roles custom ilimitados, 20 permisos en 8 categorías.
+
+**Deuda técnica conocida** (a saldar en este proyecto):
+- `leads.professional` es texto libre, no FK → migrar a `professional_id`.
+- Sesiones en memoria → se pierden al reiniciar.
+- `public/index.html` monolítico (~2000 líneas, HTML+CSS+JS inline).
+- Sin rate limiting en bot ni API.
+- Logs solo a stdout.
+- Tabla `clinics` existe pero las queries **no filtran por sede** (multiclínica no real).
+
+---
+
+## 2. Referencia competitiva y posicionamiento
+
+GESMED y equivalentes (GESCEMED, Soft4Care, Flowww, Medigest/Axón) ofrecen: gestión integral de agenda, historia clínica configurable por especialidad, codificación diagnóstica ICD-9/10, recordatorios por email/SMS/WhatsApp, citación online, facturación y enlace contable, gestión de aseguradoras y liquidaciones a médicos, multisede/multipuesto, firma de consentimientos LOPD, y portal del paciente.
+
+**Dónde igualamos:** agenda, historia clínica básica, recordatorios multicanal, multisede, RBAC, auditoría, citación online.
+
+**Dónde superamos (diferenciadores):**
+1. **Captación conversacional 24/7** por WhatsApp/Telegram con lenguaje natural, no solo un formulario web.
+2. **Automatización de recordatorios y reagendado** sin intervención humana.
+3. **Cero fricción de implantación** (SQLite/contenedor único, sin servidor pesado) y coste muy inferior.
+4. **Trazabilidad y RBAC granular** desde el día uno.
+
+No intentamos replicar facturación contable compleja en fase inicial; la planificamos pero no es bloqueante.
+
+---
+
+## 3. Principios de producto
+
+1. **El dato de salud es sagrado.** Cumplimiento RGPD por diseño y por defecto.
+2. **No romper producción.** Cambios incrementales, retrocompatibles, con migraciones reversibles.
+3. **La agenda es la fuente única de verdad** de la disponibilidad. Citas y agenda dejan de ser sistemas paralelos.
+4. **Toda acción sensible deja rastro** (auditoría) y **toda acción del paciente recibe confirmación**.
+5. **El canal es intercambiable.** La lógica conversacional vive desacoplada del transporte (Telegram, WhatsApp, web).
+
+---
+
+## 4. Restricciones NO NEGOCIABLES (compliance, seguridad, legal)
+
+Estás tratando datos personales y **datos de salud (categoría especial, Art. 9 RGPD)**. Esto condiciona toda la arquitectura:
+
+- **Base de legitimación y consentimiento:** el primer mensaje del bot debe recoger consentimiento informado explícito para el tratamiento de datos de salud, con enlace a la política de privacidad. Guardar fecha, hora, canal y versión del texto aceptado.
+- **Minimización:** no pedir ni almacenar más datos de los necesarios para gestionar la cita.
+- **Derechos ARSULIPO** (acceso, rectificación, supresión, etc.): debe existir mecanismo para localizar, exportar y **borrar/anonimizar** todos los datos de un paciente a petición. La auditoría es inmutable, pero el dato personal asociado debe poder anonimizarse.
+- **Retención:** política configurable de borrado/anonimización automática de leads no convertidos pasado X tiempo.
+- **Cifrado:** datos sensibles cifrados en reposo (al menos DNI/NIE, teléfono y notas clínicas) y TLS obligatorio en tránsito. Nada de PII en logs.
+- **Acceso mínimo:** un rol `doctor` no debe poder ver pacientes de otra sede ni de otro médico salvo permiso explícito.
+- **Registro de actividad:** quién accede a qué ficha clínica y cuándo (no solo modificaciones).
+- **Encargado del tratamiento:** si se usa WhatsApp Business API (Meta) o Twilio, dejar documentado que actúan como encargados y revisar transferencia internacional de datos.
+- **Backups cifrados y probados**, con plan de restauración.
+
+> Si una funcionalidad solicitada entra en conflicto con estas restricciones, **señálalo antes de implementarla**.
+
+---
+
+## 5. Roadmap por fases
+
+### Fase 0 — Cimientos y compliance (bloqueante, antes que features nuevas)
+- Migrar `leads.professional` (texto) → `professional_id` (FK), con script de migración que mapee por nombre y reporte huérfanos.
+- Sesiones persistentes (tabla `sessions` en SQLite o Redis).
+- Rate limiting en bot y API (por IP y por usuario de Telegram).
+- Logging persistente y rotativo, sin PII.
+- Consentimiento RGPD en el alta del bot + endpoint de supresión/anonimización de paciente.
+- Cifrado en reposo de campos sensibles.
+
+### Fase 1 — Impacto operativo inmediato (alto valor)
+- **Confirmación con slot real de agenda** (unificar citas y agenda).
+- **Recordatorios automáticos** 24 h y 2 h antes.
+- **Exportación CSV/Excel** de citas con filtros.
+- **Búsqueda y filtros avanzados** en el tab Citas.
+- **Notificación automática al paciente** al cancelar/rechazar, con opción de reagendar.
+
+### Fase 2 — Paridad con GESMED
+- **Multiclínica real** (filtrado por `clinic_id` en todas las queries).
+- **Soporte WhatsApp** (Business API o Twilio) reutilizando la lógica conversacional.
+- **Gestión de ausencias/vacaciones del médico** (excepciones de horario).
+- **Historial de conversación visible** en la ficha del paciente.
+- **Dashboard analítico** (tendencias, top especialidades, conversión por periodo, tiempo medio de confirmación).
+- **PWA** instalable y optimizada para recepción móvil.
+
+### Fase 3 — Escalabilidad y enterprise
+- **2FA (TOTP)** para roles sensibles.
+- **Refactor del frontend** monolítico a componentes/archivos separados.
+- **Suite de tests** (integración del flujo del bot + API con RBAC).
+- **Integración HIS/HCE** vía HL7/FHIR o conectores (Doctoralia, Gesden, Clinicalia).
+- Citación online web pública (portal del paciente) además del canal conversacional.
+
+---
+
+## 6. Requisitos funcionales (épicas con criterios de aceptación)
+
+### E1 · Agenda como fuente única de verdad
+- Al confirmar una cita (panel o `/confirmar`), es **obligatorio** seleccionar un slot libre del médico asignado; se crea el `booking`.
+- No se puede confirmar sobre un slot ocupado (validación DB + app).
+- El paciente recibe en el mensaje de confirmación la fecha y hora **reales** asignadas, no la "preferida".
+- **Aceptación:** intentar confirmar dos citas en el mismo slot devuelve error controlado; el calendario mensual y la agenda semanal muestran exactamente los mismos bookings.
+
+### E2 · Recordatorios automáticos
+- Job programado (cron) que envía recordatorio 24 h y 2 h antes por el canal del paciente.
+- Configurable por la clínica (activar/desactivar, ventanas horarias, plantilla de texto).
+- Idempotente: nunca envía dos veces el mismo recordatorio aunque el cron se reinicie.
+- **Aceptación:** una cita confirmada para mañana genera exactamente un recordatorio a 24 h; si se cancela, no se envía.
+
+### E3 · Reagendado y cancelación con notificación
+- Cancelar/rechazar desde el panel notifica al paciente con motivo y enlace/opción de reagendar.
+- El reagendado libera el slot anterior y ocupa el nuevo de forma atómica.
+- **Aceptación:** al cancelar, el slot vuelve a aparecer libre en la agenda y el paciente recibe el mensaje.
+
+### E4 · Exportación de datos
+- `GET /api/v1/leads/export` con filtros de fecha, estado, médico, mutua; protegido por `citas.exportar`.
+- Botón de descarga (CSV y XLSX) en el tab Citas.
+- La exportación queda registrada en auditoría (quién exportó qué rango).
+
+### E5 · Búsqueda y filtros avanzados
+- Barra de búsqueda combinable: nombre, DNI/NIE, teléfono, mutua, médico, servicio, rango de fechas, estado.
+- Resultados paginados y ordenables.
+
+### E6 · Multiclínica real
+- Todas las queries de `leads`, `professionals`, `bookings`, `schedules` filtran por `clinic_id` del usuario autenticado.
+- `superadmin` puede ver/seleccionar todas las sedes.
+- **Aceptación:** un usuario de la sede A no recibe ningún registro de la sede B en ninguna pantalla ni endpoint.
+
+### E7 · Canal WhatsApp
+- Adaptador de transporte que reutiliza la lógica conversacional existente (`ai.js`), sin duplicarla.
+- Selección de canal preferido por paciente; los recordatorios respetan ese canal.
+- Gestión de plantillas aprobadas por Meta (mensajes fuera de ventana de 24 h).
+
+### E8 · Ausencias del profesional
+- Tabla de excepciones (`fecha_inicio`, `fecha_fin`, motivo) que bloquea disponibilidad.
+- Los slots dentro del rango no aparecen como reservables ni en agenda ni en el bot.
+
+### E9 · Conversación en la ficha
+- Pestaña "Conversación" en la ficha del paciente con el hilo completo de `messages`.
+- Solo visible para roles con permiso; acceso registrado.
+
+### E10 · Analítica
+- Dashboard con evolución temporal, conversión por semana, top especialidades, tiempo medio de confirmación, tasa de no-show.
+
+### E11 · Seguridad de cuentas
+- 2FA TOTP opcional, obligatorio para `superadmin`.
+- Política de contraseñas y bloqueo tras N intentos fallidos.
+
+---
+
+## 7. Requisitos no funcionales
+
+- **Disponibilidad:** el bot no puede caerse por un error en una conversación; aislar fallos por paciente.
+- **Rendimiento:** respuesta del bot < 2 s; panel < 1 s en listados paginados.
+- **Idempotencia** en webhooks de mensajería (Telegram/WhatsApp reenvían).
+- **Observabilidad:** logs estructurados, métricas básicas (citas/día, errores, latencia), alertas de caída del bot.
+- **Internacionalización:** textos en catalán y castellano (la clínica es de Esplugues, zona bilingüe).
+- **Accesibilidad** del panel (contraste, navegación por teclado).
+
+---
+
+## 8. Casos límite y factores a contemplar ("todos los factores")
+
+Trata estos escenarios explícitamente; no los dejes al azar:
+
+**Datos y validación**
+- DNI/NIE válido en formato pero inexistente; pacientes sin DNI (menores, extranjeros sin NIE).
+- Mismo paciente con dos números de teléfono o dos cuentas de Telegram.
+- Nombre con caracteres no latinos, apellidos compuestos, tildes y dígrafos catalanes (ŀl).
+- Mutua escrita con errores tipográficos o aseguradora no listada.
+
+**Concurrencia y agenda**
+- Dos pacientes intentando el último slot a la vez (carrera).
+- Médico que cambia su horario cuando ya hay citas reservadas fuera del nuevo rango.
+- Cita a caballo de cambio de hora (octubre/marzo), festivos locales de Esplugues/Cataluña.
+- Slots de duración variable (15/20/30/60) que no encajan al cambiar la duración.
+
+**Canal y mensajería**
+- Paciente que bloquea el bot o borra el chat (no se puede entregar el recordatorio).
+- Webhook duplicado o fuera de orden; mensaje recibido dos veces.
+- Ventana de 24 h de WhatsApp cerrada (requiere plantilla aprobada).
+- Caída de la API de Meta/Twilio: cola de reintentos con backoff.
+
+**Flujo de cita**
+- Paciente que abandona el flujo a mitad (sesión conversacional huérfana → timeout y limpieza).
+- Cancelación de una cita ya pasada; modificación de una cita ya confirmada con slot.
+- No-show: marcar y contabilizar para analítica.
+- Doble cita del mismo paciente el mismo día (¿permitida o no? — decidir y validar).
+
+**Seguridad y abuso**
+- Flood de mensajes desde un mismo usuario (rate limit + bloqueo temporal).
+- Intento de enumerar códigos `CITA-XXXX` ajenos (códigos no secuenciales/adivinables + límite de intentos).
+- Escalada de privilegios al editar roles propios; un usuario no puede otorgarse permisos que no tiene.
+- Inyección en notas clínicas o nombre (sanitización, sin XSS en el panel).
+
+**Operación y datos**
+- Reinicio del servidor a mitad de conversación (sesión del bot persistente o recuperable).
+- Migración de `professional` texto → FK con médicos renombrados o eliminados (leads huérfanos).
+- Borrado/anonimización de un paciente que tiene citas futuras y auditoría asociada.
+- Restauración desde backup: integridad referencial intacta.
+
+**Negocio**
+- Clínica nueva (multisede) sin profesionales ni horarios cargados aún.
+- Cambio de aseguradora del paciente entre la solicitud y la confirmación.
+- Festivo o cierre de la clínica: bloquear toda la disponibilidad.
+
+---
+
+## 9. Definición de Hecho (DoD)
+
+Una tarea está terminada cuando:
+1. Cumple los criterios de aceptación de su épica.
+2. No rompe endpoints legacy ni el flujo del bot existente.
+3. Las acciones sensibles quedan auditadas.
+4. Tiene tests para el happy path y al menos un caso límite relevante.
+5. No introduce PII en logs.
+6. La migración de datos (si aplica) es reversible y se ha probado sobre una copia.
+7. Está documentada (qué cambió, cómo se despliega, cómo se revierte).
+
+---
+
+## 10. Forma de trabajo y entregables
+
+- Trabaja **por fases y por épicas**, en ramas pequeñas, no en un único cambio gigante.
+- Antes de cada épica: lista los archivos que tocarás y los riesgos.
+- Entrega **código copy-paste-ready**, con los comandos de migración y despliegue.
+- Mantén la API versionada; los cambios incompatibles van a `/api/v2/*`, no rompas `/api/v1/*`.
+- Para cada migración de base de datos, entrega el script de "up" y el de "down".
+- Documenta toda decisión que afecte a privacidad o a la integridad de los datos.
+
+---
+
+## 11. Riesgos principales y mitigación
+
+| Riesgo | Impacto | Mitigación |
+|---|---|---|
+| Tratamiento de datos de salud sin base legal sólida | Sanción RGPD, cierre | Consentimiento explícito, cifrado, minimización desde Fase 0 |
+| Migración `professional` → FK con datos huérfanos | Citas desincronizadas | Script con informe de huérfanos y revisión manual previa |
+| Pérdida de sesiones / datos en reinicio | Operación interrumpida | Sesiones persistentes + backups probados |
+| Dependencia de Meta/Twilio para WhatsApp | Caída del canal | Adaptador desacoplado + fallback a Telegram/email + cola de reintentos |
+| Doble reserva por concurrencia | Conflicto en consulta | Constraint UNIQUE + transacción atómica al asignar slot |
+| Frontend monolítico difícil de mantener | Lentitud de desarrollo | Refactor planificado en Fase 3, sin bloquear features |
+
+---
+
+## 12. Primer paso recomendado
+
+Empieza por la **Fase 0 (cimientos y compliance)** y, dentro de la Fase 1, por la **épica E1 (agenda como fuente única de verdad)** y **E2 (recordatorios)**: son las de mayor impacto en la operativa diaria de la clínica y en la experiencia del paciente, y desbloquean el resto del roadmap.
+
+Antes de tocar código, confirma conmigo: alcance de la fase, modelo de cifrado elegido y estrategia de migración de `professional_id`.

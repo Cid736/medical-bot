@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  dental-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dental-bot
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persiste los datos de autenticación de WhatsApp
+      - ./wwebjs_auth:/app/.wwebjs_auth
+      # Persiste la base de datos
+      - ./datos:/app/datos
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    restart: unless-stopped
+    # Aumenta el límite de memoria si es necesario
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
