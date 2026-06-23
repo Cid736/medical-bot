@@ -20,13 +20,13 @@ function seedAdmin() {
     const password = process.env.ADMIN_PASSWORD || 'cme2024!';
     const salt     = generateSalt();
     db.createUser(username, hashPassword(password, salt), salt, 'Administrador', 'superadmin');
-    console.log(`\n🔐 Admin creado: ${username} / ${password}  ← Cámbielo desde el panel\n`);
+    console.log(`\nAdmin creado: ${username} / ${password}  <- Cambielo desde el panel\n`);
   } else {
     const hasSuperadmin = users.some(u => u.role === 'superadmin');
     if (!hasSuperadmin) {
       const first = users[0];
       db.updateUser(first.id, first.name || first.username, 'superadmin');
-      console.log(`\n🔐 Usuario "${first.username}" promovido a superadmin\n`);
+      console.log(`\nUsuario "${first.username}" promovido a superadmin\n`);
     }
   }
 }

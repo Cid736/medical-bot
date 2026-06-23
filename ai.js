@@ -289,12 +289,12 @@ function menuMutua(page = 1) {
   const start = (page - 1) * MUTUAS_PER_PAGE;
   const slice = MUTUAS_ALL.slice(start, start + MUTUAS_PER_PAGE);
   const hasMore = start + MUTUAS_PER_PAGE < MUTUAS_ALL.length;
-  const EMOJIS = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'];
+  const NUMS = ['1.','2.','3.','4.','5.','6.','7.','8.'];
   let menu = '¿Dispone de mutua o seguro médico?\n\n';
-  slice.forEach((m, i) => { menu += `${EMOJIS[i]}  ${m}\n`; });
+  slice.forEach((m, i) => { menu += `${NUMS[i]}  ${m}\n`; });
   menu += '\n';
-  if (hasMore) menu += '9️⃣  Ver más opciones ➡️\n\n';
-  menu += '¿Otra mutua? Escríbala directamente.\n\n0️⃣  Volver al menú principal';
+  if (hasMore) menu += '9.  Ver más opciones\n\n';
+  menu += '¿Otra mutua? Escríbala directamente.\n\n0.  Volver al menú principal';
   return menu;
 }
 
@@ -410,17 +410,17 @@ function calculateFechaCita(day, hour, minute) {
 function menuEspecialidades() {
   return (
     '¿Qué especialidad necesita?\n\n' +
-    '1️⃣  Medicina de Familia\n' +
-    '2️⃣  Pediatría\n' +
-    '3️⃣  Fisioterapia y Rehabilitación\n' +
-    '4️⃣  Psicología / Psiquiatría\n' +
-    '5️⃣  Dermatología / Medicina Estética\n' +
-    '6️⃣  Ginecología y Obstetricia\n' +
-    '7️⃣  Traumatología / Ortopedia\n' +
-    '8️⃣  Nutrición y Dietética\n' +
-    '9️⃣  Otra especialidad\n\n' +
-    '🚨 Para urgencias escriba _urgencia_\n\n' +
-    '0️⃣  Menú principal'
+    '1.  Medicina de Familia\n' +
+    '2.  Pediatría\n' +
+    '3.  Fisioterapia y Rehabilitación\n' +
+    '4.  Psicología / Psiquiatría\n' +
+    '5.  Dermatología / Medicina Estética\n' +
+    '6.  Ginecología y Obstetricia\n' +
+    '7.  Traumatología / Ortopedia\n' +
+    '8.  Nutrición y Dietética\n' +
+    '9.  Otra especialidad\n\n' +
+    'Para urgencias escriba _urgencia_\n\n' +
+    '0.  Menú principal'
   );
 }
 
@@ -455,15 +455,15 @@ function getReplyWithPhone(phone, text, options = {}) {
       // Fall through to normal flow
     } else {
       return reply(
-        '👋 Bienvenido/a al *Centro Médico*.\n\n' +
+        'Bienvenido/a al *Centro Médico*.\n\n' +
         'Para gestionar su cita necesitamos tratar sus datos personales y de salud ' +
         'conforme al RGPD (UE) 2016/679.\n\n' +
-        '📋 *¿Qué datos tratamos?*\nNombre, teléfono, DNI/NIE y especialidad solicitada.\n\n' +
-        '🏥 *Finalidad:* gestión de citas médicas.\n' +
-        '📧 *Responsable:* Centro Médico · info@XXXXX.com\n\n' +
+        '*¿Qué datos tratamos?*\nNombre, teléfono, DNI/NIE y especialidad solicitada.\n\n' +
+        '*Finalidad:* gestión de citas médicas.\n' +
+        '*Responsable:* Centro Médico · info@XXXXX.com\n\n' +
         'Puede ejercer sus derechos (acceso, rectificación, supresión) en cualquier momento ' +
         'contactando con la clínica.\n\n' +
-        '✅ Escriba *Sí* para aceptar y continuar.\n\n' +
+        'Escriba *Sí* para aceptar y continuar.\n\n' +
         '_Política de privacidad disponible en recepción y en nuestra web._'
       );
     }
@@ -512,7 +512,7 @@ function getReplyWithPhone(phone, text, options = {}) {
       session.prevStep = session.step;
       session.step     = 'ask_name';
       const info = ESPECIALIDADES[esp] || { nombre: esp };
-      return reply(`*${info.nombre}* — entendido.\n\n¿A nombre de quién registramos la cita?\n\n0️⃣  Volver al menú principal`);
+      return reply(`*${info.nombre}* — entendido.\n\n¿A nombre de quién registramos la cita?\n\n0.  Volver al menú principal`);
     }
 
     return reply(menuEspecialidades());
@@ -538,7 +538,7 @@ function getReplyWithPhone(phone, text, options = {}) {
     }
     const lead = db.getLeadByCita(codigo);
     if (!lead) {
-      return reply('No se ha encontrado ninguna cita con ese código. Por favor, compruebe que lo ha escrito correctamente.\n\n0️⃣  Volver al menú principal');
+      return reply('No se ha encontrado ninguna cita con ese código. Por favor, compruebe que lo ha escrito correctamente.\n\n0.  Volver al menú principal');
     }
 
     session.consultLeadId = lead.id;
@@ -546,23 +546,23 @@ function getReplyWithPhone(phone, text, options = {}) {
     session.step          = 'consultar_cita_action';
 
     const estadoTexto = {
-      pendiente:  '🕐 Pendiente de confirmar',
-      confirmado: '✅ Confirmada',
-      rechazado:  '❌ Cancelada',
-      contactado: '📞 En seguimiento'
+      pendiente:  'Pendiente de confirmar',
+      confirmado: 'Confirmada',
+      rechazado:  'Cancelada',
+      contactado: 'En seguimiento'
     }[lead.estado] || lead.estado;
 
     return reply(
-      `📋 *Información de su cita:*\n\n` +
-      `👤 Paciente: ${lead.name}\n` +
-      `🏥 Especialidad: ${lead.service}\n` +
-      `📅 Horario: ${lead.horario || 'No especificado'}\n` +
-      `🔖 Código: ${lead.cita || ''}\n` +
+      `*Información de su cita:*\n\n` +
+      `Paciente: ${lead.name}\n` +
+      `Especialidad: ${lead.service}\n` +
+      `Horario: ${lead.horario || 'No especificado'}\n` +
+      `Código: ${lead.cita || ''}\n` +
       `Estado: ${estadoTexto}\n\n` +
       `¿Desea realizar algún cambio?\n` +
-      `1️⃣  Cancelar esta cita\n` +
-      `2️⃣  Cambiar la especialidad\n\n` +
-      `0️⃣  Volver al menú principal`
+      `1.  Cancelar esta cita\n` +
+      `2.  Cambiar la especialidad\n\n` +
+      `0.  Volver al menú principal`
     );
   }
 
@@ -756,10 +756,10 @@ function getReplyWithPhone(phone, text, options = {}) {
 
     return replyWithLead(
       `Su solicitud de cita ha sido registrada correctamente.\n\n` +
-      `🏥 Especialidad: *${espNombre}*\n` +
-      `📅 Horario preferido: ${lead.horario}\n` +
-      `📞 Teléfono: ${lead.contact}\n` +
-      `🏥 Cobertura: ${lead.mutua}\n\n` +
+      `Especialidad: *${espNombre}*\n` +
+      `Horario preferido: ${lead.horario}\n` +
+      `Teléfono: ${lead.contact}\n` +
+      `Cobertura: ${lead.mutua}\n\n` +
       `Nuestro equipo se pondrá en contacto con usted para confirmar la cita.\n\n` +
       `¡Gracias por contactar con el Centro Médico!`,
       lead
@@ -784,7 +784,7 @@ function handleMenu(phone, session, t, text) {
       session.service  = esp;
       session.step     = 'ask_name';
       const info = ESPECIALIDADES[esp] || { nombre: esp };
-      return reply(`*${info.nombre}* — entendido.\n\n¿A nombre de quién registramos la cita?\n\n0️⃣  Volver al menú principal`);
+      return reply(`*${info.nombre}* — entendido.\n\n¿A nombre de quién registramos la cita?\n\n0.  Volver al menú principal`);
     }
     session.prevStep = session.step;
     session.step     = 'ask_service';
@@ -794,27 +794,27 @@ function handleMenu(phone, session, t, text) {
   if (/especialidad|servicios|que (ofrecen|teneis|tienen|hacen)|^\s*2\s*$/.test(t)) {
     return reply(
       '*Especialidades del Centro Médico:*\n\n' +
-      '🩺 Medicina de Familia · Pediatría · Medicina Interna\n' +
-      '🫀 Cardiología · Neumología · Alergología · Neurología\n' +
-      '🦴 Traumatología · Fisioterapia · Osteopatía · Reumatología\n' +
-      '🧠 Psicología · Psiquiatría · Logopedia\n' +
-      '👁 Oftalmología · Optometría y Terapia Visual · ORL\n' +
-      '👩‍⚕️ Ginecología y Obstetricia\n' +
-      '🔬 Dermatología · Medicina Estética · DermoEstética\n' +
-      '⚕️ Endocrinología · Nutrición · Urología · Andrología\n' +
-      '🔪 Cirugía General · Cirugía Vascular · Neurocirugía\n' +
-      '📡 Radiología · Extracciones · Podología · Enfermería\n\n' +
-      '¿Desea solicitar una cita?\n\n0️⃣  Menú principal'
+      'Medicina de Familia · Pediatría · Medicina Interna\n' +
+      'Cardiología · Neumología · Alergología · Neurología\n' +
+      'Traumatología · Fisioterapia · Osteopatía · Reumatología\n' +
+      'Psicología · Psiquiatría · Logopedia\n' +
+      'Oftalmología · Optometría y Terapia Visual · ORL\n' +
+      'Ginecología y Obstetricia\n' +
+      'Dermatología · Medicina Estética · DermoEstética\n' +
+      'Endocrinología · Nutrición · Urología · Andrología\n' +
+      'Cirugía General · Cirugía Vascular · Neurocirugía\n' +
+      'Radiología · Extracciones · Podología · Enfermería\n\n' +
+      '¿Desea solicitar una cita?\n\n0.  Menú principal'
     );
   }
 
   if (/horario|hora|cuando|abierto|abren|^\s*3\s*$|ubicacion|donde|direccion/.test(t)) {
     return reply(
-      '📍 *Dónde estamos:*\nXXXXX\n\n' +
-      '📞 *Teléfonos:*\n111111111\n\n' +
-      '📧 info@XXXXX.com\n\n' +
-      '🕐 *Horario:*\nLunes a viernes: 8:00 – 20:30 h\n\n' +
-      '0️⃣  Menú principal'
+      '*Dónde estamos:*\nXXXXX\n\n' +
+      '*Teléfonos:*\n111111111\n\n' +
+      'info@XXXXX.com\n\n' +
+      '*Horario:*\nLunes a viernes: 8:00 – 20:30 h\n\n' +
+      '0.  Menú principal'
     );
   }
 

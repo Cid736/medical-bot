@@ -27,7 +27,7 @@ const ADMIN_IDS      = process.env.TELEGRAM_ADMIN_IDS
   : [];
 
 if (!TELEGRAM_TOKEN) {
-  console.error('❌ Debes configurar TELEGRAM_TOKEN en .env antes de iniciar el bot.');
+  console.error('Error: Debes configurar TELEGRAM_TOKEN en .env antes de iniciar el bot.');
   process.exit(1);
 }
 
@@ -60,13 +60,13 @@ bot.on('message', async (msg) => {
     const lead   = db.getLeadById(leadId);
     if (!lead) return bot.sendMessage(chatId, `No se encontró la solicitud #${leadId}.`);
     db.confirmLead(leadId);
-    await bot.sendMessage(chatId, `✅ Cita ${lead.cita || `#${leadId}`} confirmada.\n\nPaciente: ${lead.name}\nEspecialidad: ${lead.service}\nHorario: ${lead.horario}`);
+    await bot.sendMessage(chatId, `Cita ${lead.cita || `#${leadId}`} confirmada.\n\nPaciente: ${lead.name}\nEspecialidad: ${lead.service}\nHorario: ${lead.horario}`);
     if (lead.phone && lead.phone.startsWith('tg:')) {
       await bot.sendMessage(lead.phone.slice(3),
-        `✅ *Su cita en el Centro Médico ha sido confirmada.*\n\n` +
-        `🏥 Especialidad: ${lead.service}\n📅 Horario: ${lead.horario}\n\n` +
-        `📍 XXXXX\n\n` +
-        `Código: *${lead.cita}*\n📞 111111111 · 📧 info@XXXXX.com`,
+        `*Su cita en el Centro Médico ha sido confirmada.*\n\n` +
+        `Especialidad: ${lead.service}\nHorario: ${lead.horario}\n\n` +
+        `Dirección: XXXXX\n\n` +
+        `Código: *${lead.cita}*\nTel: 111111111 · info@XXXXX.com`,
         { parse_mode: 'Markdown' }
       );
     }
@@ -76,12 +76,12 @@ bot.on('message', async (msg) => {
   if (text && /^\/leads\b/i.test(text)) {
     if (!isAdmin) return bot.sendMessage(chatId, 'Acceso restringido.');
     const pending = db.getPendingLeads();
-    if (!pending.length) return bot.sendMessage(chatId, '✅ No hay solicitudes pendientes.');
+    if (!pending.length) return bot.sendMessage(chatId, 'No hay solicitudes pendientes.');
     const lines = pending.map(l =>
-      `${l.cita || `#${l.id}`} — ${l.name} | ${l.service} | ${l.horario || '—'} | ${l.contact || '—'}\n➡️ /confirmar ${l.id}`
+      `${l.cita || `#${l.id}`} — ${l.name} | ${l.service} | ${l.horario || '—'} | ${l.contact || '—'}\n/confirmar ${l.id}`
     );
     return bot.sendMessage(chatId,
-      `📋 *Pendientes (${pending.length}):*\n\n${lines.join('\n\n')}`,
+      `*Pendientes (${pending.length}):*\n\n${lines.join('\n\n')}`,
       { parse_mode: 'Markdown' }
     );
   }
@@ -115,12 +115,12 @@ bot.on('message', async (msg) => {
         for (const target of notifyTargets) {
           if (!target) continue;
           await bot.sendMessage(target,
-            `🔄 *Cita modificada — ${saved.cita}*\n\n👤 ${saved.name}\n🏥 ${saved.service}\n📅 ${saved.horario}\n📞 ${saved.contact || '—'}\n🏥 ${saved.mutua || '—'}`,
+            `*Cita modificada — ${saved.cita}*\n\nPaciente: ${saved.name}\nEspecialidad: ${saved.service}\nHorario: ${saved.horario}\nTel: ${saved.contact || '—'}\nMutua: ${saved.mutua || '—'}`,
             { parse_mode: 'Markdown' }
           );
         }
         await bot.sendMessage(chatId,
-          `✅ *Su cita ha sido modificada.*\n\n🏥 ${saved.service}\n📅 ${saved.horario}\n🔖 ${saved.cita}\n\nNuestro equipo confirmará el nuevo horario en breve.`,
+          `*Su cita ha sido modificada.*\n\nEspecialidad: ${saved.service}\nHorario: ${saved.horario}\nCódigo: ${saved.cita}\n\nNuestro equipo confirmará el nuevo horario en breve.`,
           { parse_mode: 'Markdown' }
         );
       } else {
@@ -130,14 +130,14 @@ bot.on('message', async (msg) => {
         log.info('lead_created', { leadId });
 
         await bot.sendMessage(chatId,
-          `✅ *Su solicitud de cita ha sido registrada.*\n\n📋 Código: *${saved.cita}*\n\nGuarde este código para consultar o modificar su cita.\n\nNuestro equipo del *Centro Médico* confirmará el horario en breve.\n\n📞 111111111 · 📧 info@XXXXX.com`,
+          `*Su solicitud de cita ha sido registrada.*\n\nCódigo: *${saved.cita}*\n\nGuarde este código para consultar o modificar su cita.\n\nNuestro equipo del *Centro Médico* confirmará el horario en breve.\n\nTel: 111111111 · info@XXXXX.com`,
           { parse_mode: 'Markdown' }
         );
 
         for (const target of notifyTargets) {
           if (!target) continue;
           await bot.sendMessage(target,
-            `📋 *Nueva solicitud — ${saved.cita}*\n\n👤 ${cita.name}\n🏥 ${cita.service}\n📅 ${cita.horario}\n📞 ${cita.contact || '—'}\n🏥 ${cita.mutua || '—'}${cita.dni ? '\n🪪 DNI/NIE: ' + cita.dni : ''}\n\n➡️ /confirmar ${leadId}`,
+            `*Nueva solicitud — ${saved.cita}*\n\nPaciente: ${cita.name}\nEspecialidad: ${cita.service}\nHorario: ${cita.horario}\nTel: ${cita.contact || '—'}\nMutua: ${cita.mutua || '—'}${cita.dni ? '\nDNI/NIE: ' + cita.dni : ''}\n\n/confirmar ${leadId}`,
             { parse_mode: 'Markdown' }
           );
         }
@@ -197,7 +197,7 @@ const server = app.listen(PORT, () => {
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Puerto ${PORT} en uso.`);
+    console.error(`Error: Puerto ${PORT} en uso.`);
     process.exit(1);
   }
   throw err;
