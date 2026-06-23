@@ -428,11 +428,11 @@ function menuPrincipal() {
   return (
     'Bienvenido/a al *Centro Médico*.\n\n' +
     '¿En qué podemos atenderle hoy?\n\n' +
-    '1️⃣  Solicitar cita médica\n' +
-    '2️⃣  Nuestras especialidades\n' +
-    '3️⃣  Horario, ubicación y contacto\n' +
-    '4️⃣  Consultar o modificar mi cita\n' +
-    '5️⃣  Mutuas y seguros médicos\n\n' +
+    '1.  Solicitar cita médica\n' +
+    '2.  Nuestras especialidades\n' +
+    '3.  Horario, ubicación y contacto\n' +
+    '4.  Consultar o modificar mi cita\n' +
+    '5.  Mutuas y seguros médicos\n\n' +
     '_Sus datos son tratados conforme al RGPD (UE) 2016/679._'
   );
 }
@@ -503,7 +503,7 @@ function getReplyWithPhone(phone, text, options = {}) {
         'Por ejemplo: Cardiología, Neurología, Neumología, Oftalmología, ORL,\n' +
         'Urología, Reumatología, Endocrinología, Cirugía, Podología...\n\n' +
         'Escriba la especialidad:\n\n' +
-        '0️⃣  Volver al menú principal'
+        '0.  Volver al menú principal'
       );
     }
 
@@ -522,19 +522,19 @@ function getReplyWithPhone(phone, text, options = {}) {
   if (session.step === 'ask_service_free') {
     const nombreEsp = (text || '').trim();
     if (!nombreEsp || nombreEsp.length < 3) {
-      return reply('Por favor, escriba el nombre de la especialidad que necesita.\n\n0️⃣  Volver al menú principal');
+      return reply('Por favor, escriba el nombre de la especialidad que necesita.\n\n0.  Volver al menú principal');
     }
     session.service  = nombreEsp;
     session.prevStep = session.step;
     session.step     = 'ask_name';
-    return reply(`*${nombreEsp}* — entendido.\n\n¿A nombre de quién registramos la cita?\n\n0️⃣  Volver al menú principal`);
+    return reply(`*${nombreEsp}* — entendido.\n\n¿A nombre de quién registramos la cita?\n\n0.  Volver al menú principal`);
   }
 
   // ── CONSULTAR CITA ────────────────────────────────────────────────────────
   if (session.step === 'consultar_cita') {
     const codigo = (text || '').trim().toUpperCase();
     if (!/^CITA-[A-Z0-9]{4}$/.test(codigo)) {
-      return reply('Código no válido. El formato correcto es CITA-XXXX (ejemplo: CITA-A3F7).\n\n0️⃣  Volver al menú principal');
+      return reply('Código no válido. El formato correcto es CITA-XXXX (ejemplo: CITA-A3F7).\n\n0.  Volver al menú principal');
     }
     const lead = db.getLeadByCita(codigo);
     if (!lead) {
@@ -572,7 +572,7 @@ function getReplyWithPhone(phone, text, options = {}) {
       db.updateLeadEstado(session.consultLeadId, 'rechazado');
       session.consultLeadId = null;
       startMenuSession(phone);
-      return reply('Su cita ha sido cancelada correctamente.\n\nSi desea solicitar una nueva cita, seleccione la opción 1 desde el menú principal.\n\n0️⃣  Menú principal');
+      return reply('Su cita ha sido cancelada correctamente.\n\nSi desea solicitar una nueva cita, seleccione la opción 1 desde el menú principal.\n\n0.  Menú principal');
     }
     if (t === '2') {
       session.modifyingLeadId = session.consultLeadId;
@@ -589,13 +589,13 @@ function getReplyWithPhone(phone, text, options = {}) {
     if (!validarNombre(nombreUsuario)) {
       return reply(
         'El nombre introducido no es válido.\n\nPor favor, indíquenos su nombre y apellidos completos.\n' +
-        'Ejemplo: Ana García / Carlos López\n\n0️⃣  Volver al menú principal'
+        'Ejemplo: Ana García / Carlos López\n\n0.  Volver al menú principal'
       );
     }
     session.name     = nombreUsuario;
     session.prevStep = session.step;
     session.step     = 'ask_phone';
-    return reply(`Gracias, ${nombreUsuario}. ¿Podría facilitarnos su número de teléfono de contacto?\n\nEjemplo: 612 345 678 o +34 612 345 678\n\n0️⃣  Volver al menú principal`);
+    return reply(`Gracias, ${nombreUsuario}. ¿Podría facilitarnos su número de teléfono de contacto?\n\nEjemplo: 612 345 678 o +34 612 345 678\n\n0.  Volver al menú principal`);
   }
 
   // ── TELÉFONO ─────────────────────────────────────────────────────────────
@@ -604,7 +604,7 @@ function getReplyWithPhone(phone, text, options = {}) {
     if (!validarTelefono(telInput)) {
       return reply(
         'El número de teléfono introducido no es válido.\n\nPor favor, introduzca un número de teléfono español.\n' +
-        'Ejemplo: 612 345 678 o +34 612 345 678\n\n0️⃣  Volver al menú principal'
+        'Ejemplo: 612 345 678 o +34 612 345 678\n\n0.  Volver al menú principal'
       );
     }
     let cleaned = String(telInput).trim().replace(/[\s\-\(\)\.]/g, '');
@@ -618,7 +618,7 @@ function getReplyWithPhone(phone, text, options = {}) {
       `Perfecto. Para verificar su identidad, ¿podría indicarnos su DNI o NIE?\n\n` +
       `Ejemplo: 12345678A o X1234567B\n\n` +
       `Si prefiere no facilitarlo, escriba *no* para continuar sin identificación.\n\n` +
-      `0️⃣  Volver al menú principal`
+      `0.  Volver al menú principal`
     );
   }
 
@@ -649,7 +649,7 @@ function getReplyWithPhone(phone, text, options = {}) {
     return reply(
       `El documento introducido no es válido.\n\n` +
       `Por favor, introduzca su *DNI* (8 dígitos + letra) o *NIE* (X/Y/Z + 7 dígitos + letra).\n\n` +
-      `Si prefiere no facilitarlo, escriba *no*.\n\n0️⃣  Volver al menú principal`
+      `Si prefiere no facilitarlo, escriba *no*.\n\n0.  Volver al menú principal`
     );
   }
 
@@ -680,7 +680,7 @@ function getReplyWithPhone(phone, text, options = {}) {
         `¿Qué día y hora prefiere para su cita?\n\n` +
         `Disponibilidad: lunes a viernes de 8:00 a 20:30 h.\n` +
         `Ejemplo: "lunes 10h", "jueves 16:30"\n\n` +
-        `0️⃣  Volver al menú principal`
+        `0.  Volver al menú principal`
       );
     }
 
@@ -696,7 +696,7 @@ function getReplyWithPhone(phone, text, options = {}) {
         `¿Qué día y hora prefiere para su cita?\n\n` +
         `Disponibilidad: lunes a viernes de 8:00 a 20:30 h.\n` +
         `Ejemplo: "lunes 10h", "jueves 16:30"\n\n` +
-        `0️⃣  Volver al menú principal`
+        `0.  Volver al menú principal`
       );
     }
 
@@ -711,7 +711,7 @@ function getReplyWithPhone(phone, text, options = {}) {
         `¿Qué día y hora prefiere para su cita?\n\n` +
         `Disponibilidad: lunes a viernes de 8:00 a 20:30 h.\n` +
         `Ejemplo: "lunes 10h", "jueves 16:30"\n\n` +
-        `0️⃣  Volver al menú principal`
+        `0.  Volver al menú principal`
       );
     }
 
@@ -728,7 +728,7 @@ function getReplyWithPhone(phone, text, options = {}) {
       return reply(
         'No hemos podido identificar el día y la hora. Por favor, indíquelos en el mismo mensaje:\n' +
         '  • "lunes a las 10"\n  • "miércoles 16:30"\n  • "jueves 9h"\n\n' +
-        'Disponibilidad: lunes a viernes de 8:00 a 20:30 h.\n\n0️⃣  Volver al menú principal'
+        'Disponibilidad: lunes a viernes de 8:00 a 20:30 h.\n\n0.  Volver al menú principal'
       );
     }
 
@@ -821,18 +821,18 @@ function handleMenu(phone, session, t, text) {
   if (/consultar|consulta|modificar|^\s*4\s*$/.test(t)) {
     session.prevStep = session.step;
     session.step     = 'consultar_cita';
-    return reply('Introduzca su código de cita para consultarla o modificarla.\n\nEjemplo: CITA-A3F7\n\n0️⃣  Volver al menú principal');
+    return reply('Introduzca su código de cita para consultarla o modificarla.\n\nEjemplo: CITA-A3F7\n\n0.  Volver al menú principal');
   }
 
   if (/mutua|seguro|aseguradora|cobertura|^\s*5\s*$|adeslas|asisa|sanitas|dkv|mapfre|axa|cigna/.test(t)) {
     return reply(
-      '🏥 *Mutuas y seguros aceptados:*\n\n' +
+      '*Mutuas y seguros aceptados:*\n\n' +
       'Adeslas · Asisa · AXA · DKV · Mapfre · Sanitas\n' +
       'Cigna · Fiatc · MGS · Mútua de Terrassa\n' +
       'Allianz · Helvetia · Caser · Generali · Berkley · IMQ\n' +
       '…y muchas más.\n\n' +
-      '⚠️ ¿No encuentra su aseguradora? Llámenos:\n📞 111111111\n\n' +
-      '¿Desea solicitar una cita?\n\n0️⃣  Menú principal'
+      '¿No encuentra su aseguradora? Llámenos: 111111111\n\n' +
+      '¿Desea solicitar una cita?\n\n0.  Menú principal'
     );
   }
 
@@ -840,19 +840,19 @@ function handleMenu(phone, session, t, text) {
     session.service  = 'urgencia';
     session.prevStep = session.step;
     session.step     = 'ask_name';
-    return reply('🚨 *Urgencias médicas* — gestionamos cita preferente el mismo día.\n\nTambién puede llamarnos directamente al *111111111*.\n\n¿A nombre de quién registramos la cita de urgencia?\n\n0️⃣  Volver al menú principal');
+    return reply('*Urgencias médicas* — gestionamos cita preferente el mismo día.\n\nTambién puede llamarnos directamente al *111111111*.\n\n¿A nombre de quién registramos la cita de urgencia?\n\n0.  Volver al menú principal');
   }
 
   if (/gracias|adios|hasta|bye|ok|vale|perfecto|moltes grac|fins aviat/.test(t)) {
     resetSession(phone);
-    return reply('Gracias por contactar con el Centro Médico. Estamos a su disposición de lunes a viernes de 8:00 a 20:30 h.\n\n📞 111111111 · 📧 info@XXXXX.com\n\n¡Hasta pronto!');
+    return reply('Gracias por contactar con el Centro Médico. Estamos a su disposición de lunes a viernes de 8:00 a 20:30 h.\n\nTel: 111111111 · info@XXXXX.com\n\n¡Hasta pronto!');
   }
 
   return reply(
     'No he podido entender su consulta. Puedo ayudarle con:\n\n' +
-    '1️⃣  Solicitar cita médica\n2️⃣  Nuestras especialidades\n' +
-    '3️⃣  Horario, ubicación y contacto\n4️⃣  Consultar mi cita\n5️⃣  Mutuas y seguros médicos\n\n' +
-    '0️⃣  Menú principal\n\n¿En qué podemos atenderle?'
+    '1.  Solicitar cita médica\n2.  Nuestras especialidades\n' +
+    '3.  Horario, ubicación y contacto\n4.  Consultar mi cita\n5.  Mutuas y seguros médicos\n\n' +
+    '0.  Menú principal\n\n¿En qué podemos atenderle?'
   );
 }
 

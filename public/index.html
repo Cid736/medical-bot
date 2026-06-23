@@ -412,7 +412,7 @@
 <!-- ═══ LOGIN SCREEN ══════════════════════════════════════════════════════════ -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">🏥</div>
+    <div class="login-logo">CM</div>
     <div class="login-title">Centro Médico</div>
     <div class="login-sub">Panel de gestión · Acceso restringido</div>
     <label class="login-label">Usuario</label>
@@ -427,7 +427,7 @@
 <!-- ═══ MAIN APP ═══════════════════════════════════════════════════════════════ -->
 <header class="header">
   <div class="brand">
-    <div class="brand-logo">🏥</div>
+    <div class="brand-logo">CM</div>
     <div>
       <div class="brand-name">Centro Médico</div>
       <div class="brand-tag">Cercanía · Recursos · Experiencia</div>
@@ -441,13 +441,13 @@
 </header>
 
 <nav class="tabs-bar">
-  <button class="tab-btn active" onclick="switchTab('citas',this)">📋 Citas</button>
-  <button class="tab-btn" onclick="switchTab('agenda',this)">📆 Agenda</button>
-  <button class="tab-btn" onclick="switchTab('profesionales',this)">👨‍⚕️ Profesionales</button>
-  <button class="tab-btn" onclick="switchTab('usuarios',this)" id="tabUsuariosBtn">🔐 Usuarios</button>
-  <button class="tab-btn" onclick="switchTab('calendario',this)">📅 Calendario</button>
-  <button class="tab-btn" onclick="switchTab('auditoria',this)" id="tabAuditoriaBtn" style="display:none">🔍 Auditoría</button>
-  <button class="tab-btn" onclick="switchTab('rbac',this)" id="tabRbacBtn" style="display:none">🛡 Roles</button>
+  <button class="tab-btn active" onclick="switchTab('citas',this)">Citas</button>
+  <button class="tab-btn" onclick="switchTab('agenda',this)">Agenda</button>
+  <button class="tab-btn" onclick="switchTab('profesionales',this)">Profesionales</button>
+  <button class="tab-btn" onclick="switchTab('usuarios',this)" id="tabUsuariosBtn">Usuarios</button>
+  <button class="tab-btn" onclick="switchTab('calendario',this)">Calendario</button>
+  <button class="tab-btn" onclick="switchTab('auditoria',this)" id="tabAuditoriaBtn" style="display:none">Auditoría</button>
+  <button class="tab-btn" onclick="switchTab('rbac',this)" id="tabRbacBtn" style="display:none">Roles</button>
 </nav>
 
 <!-- ═══ TAB: CITAS ════════════════════════════════════════════════════════════ -->
@@ -457,12 +457,12 @@
   <div class="page-sub" id="lastUpdate">Cargando...</div>
 
   <div class="kpis">
-    <div class="kpi kpi-navy"><span class="kpi-icon">👥</span><div class="kpi-val" id="kTotal">—</div><div class="kpi-lbl">Pacientes</div></div>
-    <div class="kpi kpi-ok">  <span class="kpi-icon">✅</span><div class="kpi-val" id="kConf">—</div><div class="kpi-lbl">Confirmadas</div></div>
-    <div class="kpi kpi-warn"><span class="kpi-icon">🕐</span><div class="kpi-val" id="kPend">—</div><div class="kpi-lbl">Pendientes</div></div>
-    <div class="kpi kpi-teal"><span class="kpi-icon">📊</span><div class="kpi-val" id="kRate">—</div><div class="kpi-lbl">Conversión</div></div>
-    <div class="kpi kpi-pur"> <span class="kpi-icon">💬</span><div class="kpi-val" id="kMsgs">—</div><div class="kpi-lbl">Mensajes</div></div>
-    <div class="kpi kpi-blue"><span class="kpi-icon">📅</span><div class="kpi-val" id="kHoy">—</div><div class="kpi-lbl">Nuevos hoy</div></div>
+    <div class="kpi kpi-navy"><span class="kpi-icon"></span><div class="kpi-val" id="kTotal">—</div><div class="kpi-lbl">Pacientes</div></div>
+    <div class="kpi kpi-ok">  <span class="kpi-icon"></span><div class="kpi-val" id="kConf">—</div><div class="kpi-lbl">Confirmadas</div></div>
+    <div class="kpi kpi-warn"><span class="kpi-icon"></span><div class="kpi-val" id="kPend">—</div><div class="kpi-lbl">Pendientes</div></div>
+    <div class="kpi kpi-teal"><span class="kpi-icon"></span><div class="kpi-val" id="kRate">—</div><div class="kpi-lbl">Conversión</div></div>
+    <div class="kpi kpi-pur"> <span class="kpi-icon"></span><div class="kpi-val" id="kMsgs">—</div><div class="kpi-lbl">Mensajes</div></div>
+    <div class="kpi kpi-blue"><span class="kpi-icon"></span><div class="kpi-val" id="kHoy">—</div><div class="kpi-lbl">Nuevos hoy</div></div>
   </div>
 
   <div class="layout">
@@ -488,7 +488,7 @@
         </select>
       </div>
       <div class="tw" id="tableWrap">
-        <div class="empty"><div class="ei">📋</div><div>Sin datos aún</div></div>
+        <div class="empty"><div class="ei"></div><div>Sin datos aún</div></div>
       </div>
     </div>
 
@@ -496,22 +496,22 @@
       <div class="card">
         <div class="card-head"><span class="card-title">Especialidades</span></div>
         <div class="svc-body" id="svcBars">
-          <div class="empty" style="padding:22px 0"><div class="ei">📊</div><div>Sin datos</div></div>
+          <div class="empty" style="padding:22px 0"><div class="ei"></div><div>Sin datos</div></div>
         </div>
       </div>
       <div class="card">
         <div class="card-head"><span class="card-title">Estados</span></div>
         <div class="ml">
-          <div class="mi"><span style="color:var(--muted)">🕐 Pendientes</span><span class="ml-v" id="mPend">—</span></div>
-          <div class="mi"><span style="color:var(--muted)">✅ Confirmadas</span><span class="ml-v" id="mConf">—</span></div>
-          <div class="mi"><span style="color:var(--muted)">❌ Canceladas</span><span class="ml-v" id="mRech">—</span></div>
-          <div class="mi"><span style="color:var(--muted)">📞 Contactados</span><span class="ml-v" id="mCont">—</span></div>
+          <div class="mi"><span style="color:var(--muted)">Pendientes</span><span class="ml-v" id="mPend">—</span></div>
+          <div class="mi"><span style="color:var(--muted)">Confirmadas</span><span class="ml-v" id="mConf">—</span></div>
+          <div class="mi"><span style="color:var(--muted)">Canceladas</span><span class="ml-v" id="mRech">—</span></div>
+          <div class="mi"><span style="color:var(--muted)">Contactados</span><span class="ml-v" id="mCont">—</span></div>
         </div>
       </div>
       <div class="card">
         <div class="card-head"><span class="card-title">Próximas citas</span><span style="font-size:10.5px;color:var(--muted)">Siguientes 6</span></div>
         <div class="prox-body" id="proximasList">
-          <div class="empty" style="padding:18px 0"><div class="ei">📭</div><div>Sin citas próximas</div></div>
+          <div class="empty" style="padding:18px 0"><div class="ei"></div><div>Sin citas próximas</div></div>
         </div>
       </div>
     </div>
@@ -531,7 +531,7 @@
         <select class="agenda-doc-sel" id="agendaDocSel" onchange="loadAgenda()">
           <option value="">— Seleccione un profesional —</option>
         </select>
-        <button class="agenda-config-btn" onclick="openScheduleEditor()" id="agendaConfigBtn" style="display:none">⚙ Configurar horario</button>
+        <button class="agenda-config-btn" onclick="openScheduleEditor()" id="agendaConfigBtn" style="display:none">Configurar horario</button>
         <div class="agenda-week-nav" style="margin-left:auto">
           <button class="btn-rf" onclick="agendaPrevWeek()">‹</button>
           <span class="week-label" id="agendaWeekLabel">—</span>
@@ -540,7 +540,7 @@
       </div>
       <div class="agenda-grid-wrap" id="agendaGridWrap">
         <div class="no-schedule">
-          <div style="font-size:36px">📆</div>
+          <div style="font-size:36px"></div>
           <div style="font-size:14px;font-weight:600">Seleccione un profesional</div>
           <div style="font-size:13px">para ver su agenda semanal</div>
         </div>
@@ -561,7 +561,7 @@
       <button class="btn btn-primary" onclick="openAddProf()">+ Añadir</button>
     </div>
     <div class="prof-grid" id="profGrid">
-      <div class="empty" style="padding:38px 20px"><div class="ei">👨‍⚕️</div><div>Sin profesionales</div></div>
+      <div class="empty" style="padding:38px 20px"><div class="ei"></div><div>Sin profesionales</div></div>
     </div>
   </div>
 </div>
@@ -578,7 +578,7 @@
       <button class="btn btn-primary" onclick="openAddUser()">+ Añadir usuario</button>
     </div>
     <div class="users-table-wrap" id="usersWrap">
-      <div class="empty"><div class="ei">🔐</div><div>Sin usuarios</div></div>
+      <div class="empty"><div class="ei"></div><div>Sin usuarios</div></div>
     </div>
   </div>
 </div>
@@ -613,7 +613,7 @@
         <div class="cal-grid" id="calGrid"></div>
       </div>
       <div class="cal-dp" id="calDetail">
-        <div class="cal-empty-d"><div style="font-size:26px">📅</div><div>Seleccione un día</div></div>
+        <div class="cal-empty-d"><div style="font-size:26px"></div><div>Seleccione un día</div></div>
       </div>
     </div>
   </div>
@@ -641,11 +641,11 @@
       <div class="card-head">
         <span class="card-title" id="rbacPermTitle">Permisos</span>
         <div class="card-acts">
-          <button class="btn btn-ghost" id="rbacDeleteRoleBtn" onclick="deleteCurrentRole()" style="font-size:11px;display:none">🗑 Eliminar rol</button>
+          <button class="btn btn-ghost" id="rbacDeleteRoleBtn" onclick="deleteCurrentRole()" style="font-size:11px;display:none">Eliminar rol</button>
         </div>
       </div>
       <div class="perm-grid" id="rbacPermGrid">
-        <div class="empty"><div class="ei">🛡</div><div>Seleccione un rol</div></div>
+        <div class="empty"><div class="ei"></div><div>Seleccione un rol</div></div>
       </div>
       <div class="rbac-ft">
         <button class="btn btn-ghost" onclick="rbacCancel()">Cancelar</button>
@@ -681,7 +681,7 @@
       <button class="btn btn-outline" onclick="exportAuditCSV()">⬇ CSV</button>
     </div>
     <div class="audit-wrap" id="auditTableWrap">
-      <div class="empty"><div class="ei">🔍</div><div>Sin registros</div></div>
+      <div class="empty"><div class="ei"></div><div>Sin registros</div></div>
     </div>
     <div class="audit-pager" id="auditPager" style="display:none">
       <button class="btn btn-ghost" id="auditPrevBtn" onclick="auditPage(-1)">‹ Anterior</button>
@@ -858,9 +858,9 @@
     </div>
     <div class="ficha-ft">
       <button class="btn btn-ok"     id="fConfBtn"  onclick="fichaConfirmar()">✓ Confirmar</button>
-      <button class="btn btn-ghost"               onclick="fichaContactado()">📞 Contactado</button>
-      <button class="btn btn-danger" id="fRechBtn"  onclick="fichaRechazar()">✕ Cancelar</button>
-      <button class="btn btn-outline"             onclick="openNotes(currentFichaId)" style="margin-left:auto">📝 Notas</button>
+      <button class="btn btn-ghost"               onclick="fichaContactado()">Contactado</button>
+      <button class="btn btn-danger" id="fRechBtn"  onclick="fichaRechazar()">Cancelar</button>
+      <button class="btn btn-outline"             onclick="openNotes(currentFichaId)" style="margin-left:auto">Notas</button>
     </div>
   </div>
 </div>
@@ -1163,9 +1163,9 @@ function renderProfessionals() {
         <div class="prof-ct">${cnt} cita${cnt!==1?'s':''} asignada${cnt!==1?'s':''}</div>
       </div>
       <div class="prof-acts">
-        <button class="act" title="Horario" onclick="openScheduleEditorFor(${p.id})">📅</button>
-        <button class="act" title="Editar"  onclick="openEditProf(${p.id})">✏️</button>
-        <button class="act a-del" title="Eliminar" onclick="deleteProf(${p.id})">🗑</button>
+        <button class="act" title="Horario" onclick="openScheduleEditorFor(${p.id})">H</button>
+        <button class="act" title="Editar"  onclick="openEditProf(${p.id})">E</button>
+        <button class="act a-del" title="Eliminar" onclick="deleteProf(${p.id})">X</button>
       </div>
     </div>`;
   }).join('');
@@ -1186,7 +1186,7 @@ async function loadUsers() {
 
 function renderUsers() {
   const w = document.getElementById('usersWrap');
-  if (!allUsers.length) { w.innerHTML='<div class="empty"><div class="ei">🔐</div><div>Sin usuarios</div></div>'; return; }
+  if (!allUsers.length) { w.innerHTML='<div class="empty"><div class="ei"></div><div>Sin usuarios</div></div>'; return; }
   w.innerHTML = allUsers.map(u => {
     const ini = (u.name||u.username).split(' ').filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
     return `<div class="user-card">
@@ -1197,9 +1197,9 @@ function renderUsers() {
       </div>
       <span class="${u.role==='superadmin'?'role-badge role-super':'role-badge role-admin'}">${u.role==='superadmin'?'Super Admin':'Admin'}</span>
       <div class="acts" style="margin-left:10px" onclick="event.stopPropagation()">
-        <button class="act" title="Editar" onclick="openEditUser(${u.id})">✏️</button>
-        <button class="act" title="Cambiar contraseña" onclick="openPassModal(${u.id})">🔑</button>
-        <button class="act a-${u.active?'no':'ok'}" title="${u.active?'Desactivar':'Activar'}" onclick="toggleUser(${u.id},${u.active?0:1})">${u.active?'🚫':'✓'}</button>
+        <button class="act" title="Editar" onclick="openEditUser(${u.id})">E</button>
+        <button class="act" title="Cambiar contraseña" onclick="openPassModal(${u.id})">P</button>
+        <button class="act a-${u.active?'no':'ok'}" title="${u.active?'Desactivar':'Activar'}" onclick="toggleUser(${u.id},${u.active?0:1})">${u.active?'Off':'On'}</button>
       </div>
     </div>`;
   }).join('');
@@ -1302,7 +1302,7 @@ async function loadAgenda() {
   document.getElementById('agendaConfigBtn').style.display = agendaDocId ? 'block' : 'none';
 
   if (!agendaDocId) {
-    document.getElementById('agendaGridWrap').innerHTML = `<div class="no-schedule"><div style="font-size:36px">📆</div><div style="font-size:14px;font-weight:600">Seleccione un profesional</div></div>`;
+    document.getElementById('agendaGridWrap').innerHTML = `<div class="no-schedule"><div style="font-size:36px"></div><div style="font-size:14px;font-weight:600">Seleccione un profesional</div></div>`;
     return;
   }
 
@@ -1327,7 +1327,7 @@ function renderAgenda() {
   const wrap = document.getElementById('agendaGridWrap');
   if (!agendaSchedule.length) {
     wrap.innerHTML = `<div class="no-schedule">
-      <div style="font-size:36px">⚙️</div>
+      <div style="font-size:36px"></div>
       <div style="font-size:14px;font-weight:600">Sin horario configurado</div>
       <div style="font-size:13px">Haga clic en "Configurar horario" para definir la disponibilidad</div>
     </div>`;
@@ -1362,7 +1362,7 @@ function renderAgenda() {
   const slots = [...slotSet].sort();
 
   if (!slots.length) {
-    wrap.innerHTML = `<div class="no-schedule"><div style="font-size:36px">⚙️</div><div>Horario configurado sin franjas horarias</div></div>`;
+    wrap.innerHTML = `<div class="no-schedule"><div style="font-size:36px"></div><div>Horario configurado sin franjas horarias</div></div>`;
     return;
   }
 
@@ -1580,7 +1580,7 @@ function renderCalendar() {
 function selectDay(ds) {
   calSelected = calSelected===ds?null:ds; renderCalendar();
   if(calSelected) renderDayDetail(calSelected);
-  else document.getElementById('calDetail').innerHTML = '<div class="cal-empty-d"><div style="font-size:26px">📅</div><div>Seleccione un día</div></div>';
+  else document.getElementById('calDetail').innerHTML = '<div class="cal-empty-d"><div style="font-size:26px"></div><div>Seleccione un día</div></div>';
 }
 
 function renderDayDetail(ds) {
@@ -1595,7 +1595,7 @@ function renderDayDetail(ds) {
   let lbl=new Date(+y,+m-1,+d).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
   lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1);
   const el=document.getElementById('calDetail');
-  if(!ap.length){el.innerHTML=`<div class="cal-dd">${lbl}</div><div class="cal-empty-d" style="height:130px"><div style="font-size:20px">📭</div><div>Sin citas</div></div>`;return;}
+  if(!ap.length){el.innerHTML=`<div class="cal-dd">${lbl}</div><div class="cal-empty-d" style="height:130px"><div style="font-size:20px"></div><div>Sin citas</div></div>`;return;}
   el.innerHTML=`<div class="cal-dd">${lbl} · ${ap.length} cita${ap.length>1?'s':''}</div>`+
     ap.map(a=>`<div class="cal-appt ${a.estado==='confirmado'?'conf':a.estado==='rechazado'||a.estado==='cancelado'?'canc':''}" ${a.id?`onclick="switchTab('citas',document.querySelector('.tab-btn'));openFicha(${a.id})"`:''}>
       <div class="cal-at">${(a.fecha_cita||'').slice(11,16)||'—'}</div>
@@ -1608,7 +1608,7 @@ function renderProximasCitas() {
   const ns = fmtDate(new Date());
   const up = allLeads.filter(l=>l.fecha_cita&&l.fecha_cita.slice(0,10)>=ns&&l.estado!=='rechazado').sort((a,b)=>(a.fecha_cita||'')<(b.fecha_cita||'')?-1:1).slice(0,6);
   const el = document.getElementById('proximasList');
-  if(!up.length){el.innerHTML='<div class="empty" style="padding:18px 0"><div class="ei">📭</div><div>Sin citas próximas</div></div>';return;}
+  if(!up.length){el.innerHTML='<div class="empty" style="padding:18px 0"><div class="ei"></div><div>Sin citas próximas</div></div>';return;}
   el.innerHTML=up.map(l=>{
     const dt=l.fecha_cita||'',ds=dt.slice(0,10),tp=dt.slice(11,16);
     const [y,m,d]=ds.split('-');
@@ -1647,7 +1647,7 @@ async function load() {
 
     const bars = document.getElementById('svcBars');
     if (!stats.top_servicios?.length) {
-      bars.innerHTML = '<div class="empty" style="padding:20px 0"><div class="ei">📊</div><div>Sin datos</div></div>';
+      bars.innerHTML = '<div class="empty" style="padding:20px 0"><div class="ei"></div><div>Sin datos</div></div>';
     } else {
       const mx = stats.top_servicios[0].total;
       bars.innerHTML = stats.top_servicios.map(s=>`<div class="svc-row">
@@ -1670,7 +1670,7 @@ async function load() {
 // ════════════════════════════════════════════════════════════════════════════
 function renderTable(leads) {
   const w = document.getElementById('tableWrap');
-  if (!leads.length) { w.innerHTML='<div class="empty"><div class="ei">🔍</div><div>Sin resultados</div></div>'; return; }
+  if (!leads.length) { w.innerHTML='<div class="empty"><div class="ei"></div><div>Sin resultados</div></div>'; return; }
 
   const rows = leads.map(l => {
     const ph = (l.phone||'').replace('tg:','');
@@ -1693,9 +1693,9 @@ function renderTable(leads) {
         <div class="acts">
           ${l.estado!=='confirmado'?`<button class="act a-ok" onclick="cambiarEstado(${l.id},'confirmado')">✓</button>`:''}
           ${l.estado!=='rechazado'?`<button class="act a-no" onclick="confirmarCancelar(${l.id})">✕</button>`:''}
-          <button class="act a-tel" onclick="llamar('${esc(ct)}')">📞</button>
-          <button class="act a-nt"  onclick="openNotes(${l.id})">📝</button>
-          <button class="act a-del" onclick="confirmarBorrar(${l.id})">🗑</button>
+          <button class="act a-tel" onclick="llamar('${esc(ct)}')" title="Llamar">Tel</button>
+          <button class="act a-nt"  onclick="openNotes(${l.id})" title="Notas">N</button>
+          <button class="act a-del" onclick="confirmarBorrar(${l.id})" title="Eliminar">X</button>
         </div>
       </td>
     </tr>`;
@@ -1952,7 +1952,7 @@ function auditPage(dir) {
 function renderAuditTable() {
   const w = document.getElementById('auditTableWrap');
   if (!auditRawLogs.length) {
-    w.innerHTML = '<div class="empty"><div class="ei">🔍</div><div>Sin registros de auditoría</div></div>';
+    w.innerHTML = '<div class="empty"><div class="ei"></div><div>Sin registros de auditoría</div></div>';
     return;
   }
   const ENTITY_LABELS = { lead:'Paciente', professional:'Profesional', booking:'Reserva', user:'Usuario' };

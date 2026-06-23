@@ -2,13 +2,13 @@
                     RESUMEN DEL MEDICAL BOT - PROYECTO COMPLETO
 ================================================================================
 
-🎯 DESCRIPCIÓN GENERAL
+DESCRIPCION GENERAL
 ================================================================================
 Bot de Telegram para capturar leads en centros médicos con IA automática
 (Google Gemini) para responder consultas, gestionar citas y guardar datos de 
 pacientes en base de datos SQLite.
 
-📦 STACK TECNOLÓGICO (5 dependencias)
+STACK TECNOLOGICO (5 dependencias)
 ================================================================================
 - node-telegram-bot-api  → Conexión con Telegram vía polling
 - @google/generative-ai  → Respuestas con IA (Gemini, gratis)
@@ -16,7 +16,7 @@ pacientes en base de datos SQLite.
 - express                → Dashboard web + API REST
 - dotenv                 → Gestión de variables de entorno
 
-✅ FUNCIONALIDADES IMPLEMENTADAS
+FUNCIONALIDADES IMPLEMENTADAS
 ================================================================================
 
 1. BOT TELEGRAM AUTOMÁTICO
@@ -96,7 +96,7 @@ pacientes en base de datos SQLite.
    - /confirmar <ID> → Confirma un lead
    - Control de acceso por TELEGRAM_ADMIN_IDS
 
-🔧 CONFIGURACIÓN
+CONFIGURACION
 ================================================================================
 
 Variables de entorno (.env):
@@ -106,7 +106,7 @@ TELEGRAM_ADMIN_IDS=xxx,yyy      # Admins separados por coma
 GEMINI_API_KEY=xxx              # (Opcional) API key de Google
 PORT=3000                       # Puerto del dashboard
 
-📁 ESTRUCTURA DEL PROYECTO
+ESTRUCTURA DEL PROYECTO
 ================================================================================
 
 dental-bot/
@@ -123,7 +123,7 @@ dental-bot/
 ├── README.md
 └── DOCKER.md
 
-🚀 INSTALACIÓN Y USO
+INSTALACION Y USO
 ================================================================================
 
 1. Instalar dependencias:
@@ -138,7 +138,7 @@ dental-bot/
 
 El bot estará listo en Telegram y el dashboard en http://localhost:3000
 
-💡 CARACTERÍSTICAS AVANZADAS
+CARACTERISTICAS AVANZADAS
 ================================================================================
 
 ✓ Sin límites de API
