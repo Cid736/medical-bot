@@ -1,4 +1,4 @@
-# 🐳 Ejecución del Bot en Docker
+# Ejecución del Bot en Docker
 
 Esta guía te muestra cómo ejecutar el bot de WhatsApp usando Docker.
 
@@ -13,7 +13,7 @@ Esta guía te muestra cómo ejecutar el bot de WhatsApp usando Docker.
 
 ```bash
 # 1. Navega a la carpeta del bot
-cd C:\Users\ericc\OneDrive\Desktop\C\dental-bot
+cd dental-bot
 
 # 2. Construye la imagen
 docker-compose build
@@ -32,7 +32,7 @@ docker build -t dental-bot .
 docker run -p 3000:3000 -v wwebjs_auth:/app/.wwebjs_auth dental-bot
 ```
 
-## 📱 Escanear el QR
+## Escanear el QR
 
 Cuando ejecutes el bot, verás el QR en los logs de Docker:
 
@@ -43,27 +43,27 @@ docker logs dental-bot --follow
 
 Busca el mensaje:
 ```
-📱 Escanea este QR con WhatsApp:
+Escanea este QR con WhatsApp:
 ```
 
 Luego escanea con tu móvil:
 - WhatsApp → 3 puntos (⋮) → **Dispositivos vinculados** → **Vincular dispositivo**
 - Escanea el QR
 
-## 🌐 Acceso al Dashboard
+## Acceso al Dashboard
 
 Una vez conectado, abre tu navegador:
 ```
 http://localhost:3000
 ```
 
-## 🧪 Prueba del Bot
+## Prueba del Bot
 
 Desde otro móvil, envía un WhatsApp al número vinculado escribiendo: **hola**
 
 El bot debería responder automáticamente.
 
-## 📋 Comandos útiles
+## Comandos útiles
 
 ```bash
 # Ver los logs en tiempo real
@@ -82,7 +82,7 @@ docker-compose down -v
 docker-compose exec dental-bot ls -la .wwebjs_auth
 ```
 
-## ⚠️ Solución de problemas
+## Solución de problemas
 
 ### El QR no aparece
 1. Verifica los logs: `docker-compose logs -f`
@@ -98,7 +98,7 @@ docker-compose down -v
 ```
 Esto borra la autenticación guardada, obligándote a escanear el QR de nuevo.
 
-## 🔄 Actualizar el código
+## Actualizar el código
 
 Si cambias el código Python/Node:
 
@@ -110,7 +110,7 @@ docker-compose build
 docker-compose up
 ```
 
-## 📦 Persistencia de datos
+## Persistencia de datos
 
 - **Autenticación WhatsApp**: Guardada en `./wwebjs_auth/` (local)
 - **Base de datos**: Guardada en `./datos/` (local)
@@ -118,7 +118,7 @@ docker-compose up
 
 Los datos persisten incluso si paras y reinicias el contenedor.
 
-## 🌍 Acceso remoto
+## Acceso remoto
 
 Si quieres acceder al dashboard desde otra máquina en tu red:
 
@@ -133,10 +133,10 @@ Si quieres acceder al dashboard desde otra máquina en tu red:
    http://192.168.1.100:3000
    ```
 
-## 📝 Notas
+## Notas
 
 - El contenedor usa `restart: unless-stopped` para reiniciarse automáticamente
 - Requiere ~1GB de RAM (Chromium incluido)
 - Primer inicio tarda más (descarga Chromium en el contenedor)
 
-¡Listo! El bot debería estar corriendo en Docker. 🎉
+El bot debería estar corriendo en Docker.

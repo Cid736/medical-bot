@@ -1,94 +1,94 @@
-# Dental Bot — Telegram Bot para Clínicas Dentales
+# Dental Bot — Telegram Bot for Dental Clinics
 
-Bot de Telegram con IA (Google Gemini) para capturar leads, responder consultas y gestionar citas automáticamente. Incluye dashboard web con KPIs en tiempo real.
+Telegram bot with AI (Google Gemini) to capture leads, answer queries and manage appointments automatically. Includes a web dashboard with real-time KPIs.
 
 ## Demo
 
 ```
-Paciente → "Quiero una limpieza"
-Bot      → "¡Hola! Encantado. Una limpieza dental cuesta 60€.
-             ¿A qué nombre apunto la cita?"
-Paciente → "Ana García, el martes por la mañana"
-Bot      → "Perfecto, Ana. Cita registrada para el martes por la mañana.
-             Recibirás confirmación en breve."
+Patient -> "I'd like a cleaning"
+Bot     -> "Hello! A dental cleaning costs 60 EUR.
+            What name should I put the appointment under?"
+Patient -> "Ana Garcia, Tuesday morning"
+Bot     -> "Perfect, Ana. Appointment registered for Tuesday morning.
+            You'll receive confirmation shortly."
 ```
 
-El admin recibe notificación en Telegram y puede confirmar con `/confirmar <ID>`.
+The admin gets a Telegram notification and can confirm with `/confirmar <ID>`.
 
-## Funcionalidades
+## Features
 
-- Conversación guiada por estados (nombre → servicio → horario)
-- Detecta 6 servicios dentales con precios configurables
-- Valida horarios de atención (lun-vie 9-20h, sáb 9-14h)
-- Motor de IA con Gemini (fallback local sin API)
-- Dashboard web: KPIs, tabla de leads, gráfico de servicios
-- Comandos admin: `/leads`, `/confirmar <ID>`
-- Docker Ready
+- State-machine conversation flow (name -> service -> time slot)
+- Detects 6 dental services with configurable prices
+- Validates opening hours (Mon-Fri 9-20h, Sat 9-14h)
+- AI engine with Gemini (local fallback without API)
+- Web dashboard: KPIs, leads table, services chart
+- Admin commands: `/leads`, `/confirmar <ID>`
+- Docker ready
 
 ## Stack
 
-| Paquete | Uso |
+| Package | Purpose |
 |---|---|
-| `node-telegram-bot-api` | Conexión con Telegram vía polling |
-| `@google/generative-ai` | Respuestas con IA (Gemini, gratis) |
-| `better-sqlite3` | Base de datos SQLite local |
-| `express` | Dashboard web + API REST |
-| `dotenv` | Variables de entorno |
+| `node-telegram-bot-api` | Telegram connection via polling |
+| `@google/generative-ai` | AI responses (Gemini, free) |
+| `better-sqlite3` | Local SQLite database |
+| `express` | Web dashboard + REST API |
+| `dotenv` | Environment variables |
 
-## Instalación
+## Setup
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/dental-bot.git
+# 1. Clone the repository
+git clone https://github.com/Cid736/dental-bot.git
 cd dental-bot
 
-# 2. Instalar dependencias
+# 2. Install dependencies
 npm install
 
-# 3. Configurar variables de entorno
+# 3. Configure environment variables
 cp .env.example .env
-# Edita .env con tu TELEGRAM_TOKEN (obténlo en https://t.me/BotFather)
-# y opcionalmente tu GEMINI_API_KEY (https://aistudio.google.com/apikey)
+# Edit .env with your TELEGRAM_TOKEN (get it from https://t.me/BotFather)
+# and optionally your GEMINI_API_KEY (https://aistudio.google.com/apikey)
 
-# 4. Arrancar
+# 4. Start
 npm start
 ```
 
-## Uso
+## Usage
 
-Una vez arrancado:
-- El bot responde en Telegram automáticamente
-- Dashboard disponible en `http://localhost:3000`
-- Los leads se guardan en `dental_bot.db` (se crea automáticamente)
+Once running:
+- The bot responds on Telegram automatically
+- Dashboard available at `http://localhost:3000`
+- Leads are saved to `dental_bot.db` (created automatically)
 
-## API REST
+## REST API
 
-| Endpoint | Descripción |
+| Endpoint | Description |
 |---|---|
-| `GET /api/stats` | KPIs: total leads, confirmados, mensajes, top servicios |
-| `GET /api/leads` | Todos los leads con estado |
+| `GET /api/stats` | KPIs: total leads, confirmed, messages, top services |
+| `GET /api/leads` | All leads with status |
 
-## Estructura
+## Structure
 
 ```
 dental-bot/
-├── index.js           → Bot Telegram + servidor Express
-├── db.js              → SQLite (esquema + CRUD)
-├── ai.js              → Motor de conversación + Gemini
+├── index.js           -> Telegram bot + Express server
+├── db.js              -> SQLite (schema + CRUD)
+├── ai.js              -> Conversation engine + Gemini
 ├── public/
-│   └── index.html     → Dashboard web
+│   └── index.html     -> Web dashboard
 ├── Dockerfile
 ├── docker-compose.yml
-├── .env.example       → Plantilla de configuración
+├── .env.example       -> Configuration template
 └── package.json
 ```
 
-## Personalización
+## Customization
 
-Edita `ai.js` para adaptar el bot a otra clínica:
-- `SERVICIOS` → catálogo de servicios y precios
-- `SYSTEM_PROMPT` → nombre de la clínica y personalidad del bot
-- `FLOWS` → respuestas predefinidas del fallback
+Edit `ai.js` to adapt the bot to another clinic:
+- `SERVICIOS` -> service catalog and prices
+- `SYSTEM_PROMPT` -> clinic name and bot personality
+- `FLOWS` -> predefined fallback responses
 
 ## Docker
 
@@ -96,4 +96,4 @@ Edita `ai.js` para adaptar el bot a otra clínica:
 docker compose up -d
 ```
 
-Accede al dashboard en `http://localhost:3000`.
+Access the dashboard at `http://localhost:3000`.
