@@ -1,4 +1,4 @@
-# PROMPT — Evolución de "Centre Mèdic Esplugues · Bot de Citas" a plataforma SaaS médica de nivel profesional
+# PROMPT — Evolución de "Centro Médico · Bot de Citas" a plataforma SaaS médica de nivel profesional
 
 > Briefing de Product Manager para equipo de desarrollo / agente de IA.
 > Referencia competitiva: **GESMED / Gesmedic** (gestión clínica integral española).
@@ -176,7 +176,7 @@ Estás tratando datos personales y **datos de salud (categoría especial, Art. 9
 - **Rendimiento:** respuesta del bot < 2 s; panel < 1 s en listados paginados.
 - **Idempotencia** en webhooks de mensajería (Telegram/WhatsApp reenvían).
 - **Observabilidad:** logs estructurados, métricas básicas (citas/día, errores, latencia), alertas de caída del bot.
-- **Internacionalización:** textos en catalán y castellano (la clínica es de Esplugues, zona bilingüe).
+- **Internacionalización:** textos en múltiples idiomas según la zona del centro médico.
 - **Accesibilidad** del panel (contraste, navegación por teclado).
 
 ---
@@ -194,7 +194,7 @@ Trata estos escenarios explícitamente; no los dejes al azar:
 **Concurrencia y agenda**
 - Dos pacientes intentando el último slot a la vez (carrera).
 - Médico que cambia su horario cuando ya hay citas reservadas fuera del nuevo rango.
-- Cita a caballo de cambio de hora (octubre/marzo), festivos locales de Esplugues/Cataluña.
+- Cita a caballo de cambio de hora (octubre/marzo), festivos locales del área del centro médico.
 - Slots de duración variable (15/20/30/60) que no encajan al cambiar la duración.
 
 **Canal y mensajería**

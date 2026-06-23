@@ -63,10 +63,10 @@ bot.on('message', async (msg) => {
     await bot.sendMessage(chatId, `✅ Cita ${lead.cita || `#${leadId}`} confirmada.\n\nPaciente: ${lead.name}\nEspecialidad: ${lead.service}\nHorario: ${lead.horario}`);
     if (lead.phone && lead.phone.startsWith('tg:')) {
       await bot.sendMessage(lead.phone.slice(3),
-        `✅ *Su cita en el Centre Mèdic Esplugues ha sido confirmada.*\n\n` +
+        `✅ *Su cita en el Centro Médico ha sido confirmada.*\n\n` +
         `🏥 Especialidad: ${lead.service}\n📅 Horario: ${lead.horario}\n\n` +
-        `📍 Mestre Joan Corrales, 67 — Esplugues de Llobregat\n\n` +
-        `Código: *${lead.cita}*\n📞 93 470 53 10 · 📧 info@cmesplugues.com`,
+        `📍 XXXXX\n\n` +
+        `Código: *${lead.cita}*\n📞 111111111 · 📧 info@XXXXX.com`,
         { parse_mode: 'Markdown' }
       );
     }
@@ -130,7 +130,7 @@ bot.on('message', async (msg) => {
         log.info('lead_created', { leadId });
 
         await bot.sendMessage(chatId,
-          `✅ *Su solicitud de cita ha sido registrada.*\n\n📋 Código: *${saved.cita}*\n\nGuarde este código para consultar o modificar su cita.\n\nNuestro equipo del *Centre Mèdic Esplugues* confirmará el horario en breve.\n\n📞 93 470 53 10 · 📧 info@cmesplugues.com`,
+          `✅ *Su solicitud de cita ha sido registrada.*\n\n📋 Código: *${saved.cita}*\n\nGuarde este código para consultar o modificar su cita.\n\nNuestro equipo del *Centro Médico* confirmará el horario en breve.\n\n📞 111111111 · 📧 info@XXXXX.com`,
           { parse_mode: 'Markdown' }
         );
 

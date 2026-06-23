@@ -244,7 +244,7 @@ function seedRBAC() {
 
   // Default clinic
   db.prepare('INSERT OR IGNORE INTO clinics (id, name, slug, address, phone, email) VALUES (1,?,?,?,?,?)')
-    .run('Centre Mèdic Esplugues', 'cme', 'Mestre Joan Corrales, 67, Esplugues de Llobregat', '93 470 53 10', 'info@cmesplugues.com');
+    .run('Centro Médico', 'cme', 'XXXXX', '111111111', 'info@XXXXX.com');
 }
 
 seedRBAC();

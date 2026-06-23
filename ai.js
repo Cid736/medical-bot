@@ -1,4 +1,4 @@
-// Motor de conversación — Centre Mèdic Esplugues
+// Motor de conversación — Centro Médico
 
 const ESPECIALIDADES = {
   'familia':       { nombre: 'Medicina de Familia'              },
@@ -426,7 +426,7 @@ function menuEspecialidades() {
 
 function menuPrincipal() {
   return (
-    'Bienvenido/a al *Centre Mèdic Esplugues*.\n\n' +
+    'Bienvenido/a al *Centro Médico*.\n\n' +
     '¿En qué podemos atenderle hoy?\n\n' +
     '1️⃣  Solicitar cita médica\n' +
     '2️⃣  Nuestras especialidades\n' +
@@ -455,12 +455,12 @@ function getReplyWithPhone(phone, text, options = {}) {
       // Fall through to normal flow
     } else {
       return reply(
-        '👋 Bienvenido/a al *Centre Mèdic Esplugues*.\n\n' +
+        '👋 Bienvenido/a al *Centro Médico*.\n\n' +
         'Para gestionar su cita necesitamos tratar sus datos personales y de salud ' +
         'conforme al RGPD (UE) 2016/679.\n\n' +
         '📋 *¿Qué datos tratamos?*\nNombre, teléfono, DNI/NIE y especialidad solicitada.\n\n' +
         '🏥 *Finalidad:* gestión de citas médicas.\n' +
-        '📧 *Responsable:* Centre Mèdic Esplugues · info@cmesplugues.com\n\n' +
+        '📧 *Responsable:* Centro Médico · info@XXXXX.com\n\n' +
         'Puede ejercer sus derechos (acceso, rectificación, supresión) en cualquier momento ' +
         'contactando con la clínica.\n\n' +
         '✅ Escriba *Sí* para aceptar y continuar.\n\n' +
@@ -761,7 +761,7 @@ function getReplyWithPhone(phone, text, options = {}) {
       `📞 Teléfono: ${lead.contact}\n` +
       `🏥 Cobertura: ${lead.mutua}\n\n` +
       `Nuestro equipo se pondrá en contacto con usted para confirmar la cita.\n\n` +
-      `¡Gracias por contactar con el Centre Mèdic Esplugues!`,
+      `¡Gracias por contactar con el Centro Médico!`,
       lead
     );
   }
@@ -793,7 +793,7 @@ function handleMenu(phone, session, t, text) {
 
   if (/especialidad|servicios|que (ofrecen|teneis|tienen|hacen)|^\s*2\s*$/.test(t)) {
     return reply(
-      '*Especialidades del Centre Mèdic Esplugues:*\n\n' +
+      '*Especialidades del Centro Médico:*\n\n' +
       '🩺 Medicina de Familia · Pediatría · Medicina Interna\n' +
       '🫀 Cardiología · Neumología · Alergología · Neurología\n' +
       '🦴 Traumatología · Fisioterapia · Osteopatía · Reumatología\n' +
@@ -810,9 +810,9 @@ function handleMenu(phone, session, t, text) {
 
   if (/horario|hora|cuando|abierto|abren|^\s*3\s*$|ubicacion|donde|direccion/.test(t)) {
     return reply(
-      '📍 *Dónde estamos:*\nMestre Joan Corrales, 67\nEsplugues de Llobregat, Barcelona\n\n' +
-      '📞 *Teléfonos:*\n93 470 53 10 (central)\n689 325 404 (fisioterapia privada)\n\n' +
-      '📧 info@cmesplugues.com\n\n' +
+      '📍 *Dónde estamos:*\nXXXXX\n\n' +
+      '📞 *Teléfonos:*\n111111111\n\n' +
+      '📧 info@XXXXX.com\n\n' +
       '🕐 *Horario:*\nLunes a viernes: 8:00 – 20:30 h\n\n' +
       '0️⃣  Menú principal'
     );
@@ -831,7 +831,7 @@ function handleMenu(phone, session, t, text) {
       'Cigna · Fiatc · MGS · Mútua de Terrassa\n' +
       'Allianz · Helvetia · Caser · Generali · Berkley · IMQ\n' +
       '…y muchas más.\n\n' +
-      '⚠️ ¿No encuentra su aseguradora? Llámenos:\n📞 93 470 53 10\n\n' +
+      '⚠️ ¿No encuentra su aseguradora? Llámenos:\n📞 111111111\n\n' +
       '¿Desea solicitar una cita?\n\n0️⃣  Menú principal'
     );
   }
@@ -840,12 +840,12 @@ function handleMenu(phone, session, t, text) {
     session.service  = 'urgencia';
     session.prevStep = session.step;
     session.step     = 'ask_name';
-    return reply('🚨 *Urgencias médicas* — gestionamos cita preferente el mismo día.\n\nTambién puede llamarnos directamente al *93 470 53 10*.\n\n¿A nombre de quién registramos la cita de urgencia?\n\n0️⃣  Volver al menú principal');
+    return reply('🚨 *Urgencias médicas* — gestionamos cita preferente el mismo día.\n\nTambién puede llamarnos directamente al *111111111*.\n\n¿A nombre de quién registramos la cita de urgencia?\n\n0️⃣  Volver al menú principal');
   }
 
   if (/gracias|adios|hasta|bye|ok|vale|perfecto|moltes grac|fins aviat/.test(t)) {
     resetSession(phone);
-    return reply('Gracias por contactar con el Centre Mèdic Esplugues. Estamos a su disposición de lunes a viernes de 8:00 a 20:30 h.\n\n📞 93 470 53 10 · 📧 info@cmesplugues.com\n\n¡Hasta pronto!');
+    return reply('Gracias por contactar con el Centro Médico. Estamos a su disposición de lunes a viernes de 8:00 a 20:30 h.\n\n📞 111111111 · 📧 info@XXXXX.com\n\n¡Hasta pronto!');
   }
 
   return reply(

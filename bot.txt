@@ -1,5 +1,5 @@
 ================================================================================
-  CENTRE MÈDIC ESPLUGUES — BOT DE CITAS
+  CENTRO MÉDICO — BOT DE CITAS
   Informe de desarrollo · Versión 1.0
   Fecha: junio 2026
 ================================================================================
@@ -9,7 +9,7 @@ RESUMEN EJECUTIVO
 ────────────────────────────────────────────────────────────────────────────────
 
 Se ha desarrollado desde cero un sistema completo de gestión de citas médicas
-para el Centre Mèdic Esplugues, compuesto por un bot de Telegram para pacientes
+para el Centro Médico, compuesto por un bot de Telegram para pacientes
 y un panel web de administración para el equipo clínico y de gestión.
 
 El sistema ha pasado de ser un prototipo monolítico a una plataforma de nivel
