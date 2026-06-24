@@ -12,6 +12,15 @@ function hasPerm(req, permKey) {
   return userPerms.has(permKey);
 }
 
+// Strip PII fields (DNI, contact, notes) unless user has explicit PII access
+const PII_FIELDS = ['dni', 'contact', 'notes'];
+function maskPII(lead, req) {
+  if (req.user?.role === 'superadmin' || hasPerm(req, 'citas.pii')) return lead;
+  const safe = { ...lead };
+  PII_FIELDS.forEach(f => delete safe[f]);
+  return safe;
+}
+
 router.get('/stats', requireAuth, requirePerm('citas.ver'), (_req, res) => res.json(db.getStats()));
 
 router.get('/', requireAuth, requirePerm('citas.ver'), (req, res) => {
@@ -32,9 +41,9 @@ router.get('/', requireAuth, requirePerm('citas.ver'), (req, res) => {
         (l.professional||'').toLowerCase().includes(ql)
       );
     }
-    return res.json(leads);
+    return res.json(leads.map(l => maskPII(l, req)));
   }
-  return res.json(db.getLeads());
+  return res.json(db.getLeads().map(l => maskPII(l, req)));
 });
 
 router.get('/export', requireAuth, requirePerm('citas.exportar'), (req, res) => {
@@ -53,12 +62,12 @@ router.get('/:id', requireAuth, requirePerm('citas.ver'), (req, res) => {
   const id = req.params.id;
   if (/^CITA-/i.test(id)) {
     const lead = db.getLeadByCita(id.toUpperCase());
-    return lead ? res.json(lead) : res.status(404).json({ error: 'No encontrado' });
+    return lead ? res.json(maskPII(lead, req)) : res.status(404).json({ error: 'No encontrado' });
   }
   const num = Number(id);
   if (Number.isNaN(num)) return res.status(400).json({ error: 'ID inválido' });
   const lead = db.getLeadById(num);
-  return lead ? res.json(lead) : res.status(404).json({ error: 'No encontrado' });
+  return lead ? res.json(maskPII(lead, req)) : res.status(404).json({ error: 'No encontrado' });
 });
 
 router.patch('/:id/notes', requireAuth, requirePerm('citas.notas'), (req, res) => {

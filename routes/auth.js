@@ -16,11 +16,15 @@ function generateToken() { return crypto.randomBytes(32).toString('hex'); }
 function seedAdmin() {
   const users = db.getAllUsers();
   if (!users.length) {
+    if (!process.env.ADMIN_PASSWORD) {
+      console.error('\n[dental-bot] FATAL: ADMIN_PASSWORD no está definido en .env — necesario para crear el admin inicial\n');
+      process.exit(1);
+    }
     const username = process.env.ADMIN_USERNAME || 'admin';
-    const password = process.env.ADMIN_PASSWORD || 'cme2024!';
+    const password = process.env.ADMIN_PASSWORD;
     const salt     = generateSalt();
     db.createUser(username, hashPassword(password, salt), salt, 'Administrador', 'superadmin');
-    console.log(`\nAdmin creado: ${username} / ${password}  <- Cambielo desde el panel\n`);
+    console.log(`\nAdmin creado: ${username}  <- Cambielo desde el panel\n`);
   } else {
     const hasSuperadmin = users.some(u => u.role === 'superadmin');
     if (!hasSuperadmin) {

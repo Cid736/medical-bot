@@ -461,6 +461,10 @@ module.exports = {
     return db.prepare('DELETE FROM bookings WHERE id = ?').run(id);
   },
 
+  getBookingById(id) {
+    return db.prepare('SELECT * FROM bookings WHERE id = ?').get(id);
+  },
+
   getBookingByLeadId(leadId) {
     return db.prepare('SELECT * FROM bookings WHERE lead_id = ?').get(leadId);
   },

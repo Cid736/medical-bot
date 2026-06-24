@@ -43,6 +43,7 @@ router.post('/', requireAuth, requirePerm('agenda.reservar'), (req, res) => {
 
 router.patch('/:id/estado', requireAuth, requirePerm('agenda.reservar'), (req, res) => {
   const id = Number(req.params.id);
+  if (!db.getBookingById(id)) return res.status(404).json({ error: 'Cita no encontrada' });
   const { estado } = req.body || {};
   const validos = ['pendiente', 'confirmado', 'cancelado'];
   if (!validos.includes(estado)) return res.status(400).json({ error: 'Estado no válido' });
@@ -53,6 +54,7 @@ router.patch('/:id/estado', requireAuth, requirePerm('agenda.reservar'), (req, r
 
 router.delete('/:id', requireAuth, requirePerm('agenda.reservar'), (req, res) => {
   const id = Number(req.params.id);
+  if (!db.getBookingById(id)) return res.status(404).json({ error: 'Cita no encontrada' });
   db.deleteBooking(id);
   audit(req, 'DELETE', 'booking', id, null, null);
   return res.json({ ok: true });
