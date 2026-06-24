@@ -71,7 +71,7 @@ router.patch('/:id/notes', requireAuth, requirePerm('citas.notas'), (req, res) =
   return res.json({ ok: true });
 });
 
-router.patch('/:id/estado', requireAuth, requirePerm('citas.ver'), (req, res) => {
+router.patch('/:id/estado', requireAuth, requirePerm('citas.confirmar'), (req, res) => {
   const id = Number(req.params.id);
   const { estado } = req.body || {};
   const validos = ['pendiente', 'confirmado', 'rechazado', 'contactado'];
@@ -90,7 +90,7 @@ router.patch('/:id/estado', requireAuth, requirePerm('citas.ver'), (req, res) =>
   return res.json({ ok: true });
 });
 
-router.patch('/:id/professional', requireAuth, requirePerm('citas.ver'), (req, res) => {
+router.patch('/:id/professional', requireAuth, requirePerm('citas.confirmar'), (req, res) => {
   const id = Number(req.params.id);
   const { professional } = req.body || {};
   if (typeof professional !== 'string') return res.status(400).json({ error: 'Inválido' });
