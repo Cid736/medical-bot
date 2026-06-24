@@ -98,3 +98,18 @@ docker compose up -d
 ```
 
 Accede al dashboard en `http://localhost:3000`.
+
+## Historial de versiones
+
+**v0.2.1** — 2026-06-24
+- Fix: los endpoints Start/Restart del bot comprueban `isPolling()` para evitar error 500 al hacer doble Start
+- Fix: el filtro `professional_id` se ignoraba silenciosamente en la exportación de leads — corregido
+
+**v0.2.0** — 2026-06-23
+- Novedades: controles del bot en la cabecera del dashboard (Iniciar / Parar / Reiniciar sin reiniciar el servidor)
+- Novedades: banner de versión alfa
+- Novedades: consentimiento RGPD, cifrado de datos, registro de auditoría, roles y permisos RBAC
+- Refactor: renombrado de dental-bot a medical-bot
+
+**v0.1.0** — 2026-05-01
+- Publicación inicial: bot de Telegram, captura de leads, SQLite, dashboard web

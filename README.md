@@ -98,3 +98,18 @@ docker compose up -d
 ```
 
 Access the dashboard at `http://localhost:3000`.
+
+## Changelog
+
+**v0.2.1** — 2026-06-24
+- Fix: bot Start/Restart endpoints now guard with `isPolling()` to prevent error 500 on double-start
+- Fix: `professional_id` filter was silently ignored in lead export — now applied correctly
+
+**v0.2.0** — 2026-06-23
+- Feat: bot controls in dashboard header (Start / Stop / Restart without server restart)
+- Feat: alpha version banner
+- Feat: RGPD consent gate, data encryption, audit log, RBAC roles and permissions
+- Refactor: renamed from dental-bot to medical-bot
+
+**v0.1.0** — 2026-05-01
+- Initial release: Telegram bot, lead capture, SQLite, web dashboard
