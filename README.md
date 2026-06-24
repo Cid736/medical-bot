@@ -101,6 +101,14 @@ Access the dashboard at `http://localhost:3000`.
 
 ## Changelog
 
+**v0.2.2** — 2026-06-24
+- Security: hardcoded admin password removed from source — `ADMIN_PASSWORD` is now required in `.env`; server exits on startup if missing
+- Security: `PATCH /:id/estado` and `PATCH /:id/professional` routes were protected by read-only permission (`citas.ver`), now require write permission (`citas.confirmar`)
+- Security: PII fields (`dni`, `contact`, `notes`) masked for non-superadmin roles — only accounts with `citas.pii` permission receive them
+- Security: IDOR fixed on `PATCH /bookings/:id/estado` and `DELETE /bookings/:id` — existence check added before operating
+- Security: `getBookingById()` method added to `db.js` (was missing, causing potential 500)
+- Admin password no longer printed to console logs
+
 **v0.2.1** — 2026-06-24
 - Fix: bot Start/Restart endpoints now guard with `isPolling()` to prevent error 500 on double-start
 - Fix: `professional_id` filter was silently ignored in lead export — now applied correctly

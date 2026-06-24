@@ -101,6 +101,14 @@ Accede al dashboard en `http://localhost:3000`.
 
 ## Historial de versiones
 
+**v0.2.2** — 2026-06-24
+- Seguridad: contraseña de admin eliminada del código fuente — `ADMIN_PASSWORD` ahora es obligatoria en `.env`; el servidor aborta al arrancar si falta
+- Seguridad: los endpoints `PATCH /:id/estado` y `PATCH /:id/professional` estaban protegidos por permiso de solo lectura (`citas.ver`), ahora requieren permiso de escritura (`citas.confirmar`)
+- Seguridad: campos PII (`dni`, `contact`, `notes`) enmascarados para roles sin `citas.pii` — solo superadmin o cuentas con dicho permiso los reciben
+- Seguridad: IDOR corregido en `PATCH /bookings/:id/estado` y `DELETE /bookings/:id` — se comprueba la existencia antes de operar
+- Seguridad: método `getBookingById()` añadido a `db.js` (faltaba, podía causar error 500)
+- La contraseña de admin ya no se imprime en los logs de consola
+
 **v0.2.1** — 2026-06-24
 - Fix: los endpoints Start/Restart del bot comprueban `isPolling()` para evitar error 500 al hacer doble Start
 - Fix: el filtro `professional_id` se ignoraba silenciosamente en la exportación de leads — corregido
