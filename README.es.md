@@ -22,6 +22,7 @@ El admin recibe notificación en Telegram y puede confirmar con `/confirmar <ID>
 - Valida horarios de atención (lun-vie 9-20h, sab 9-14h)
 - Motor de IA con Gemini (fallback local sin API)
 - Dashboard web: KPIs, tabla de leads, gráfico de servicios
+- **Controles del bot** en el header del dashboard: Start / Stop / Restart del polling de Telegram sin reiniciar el servidor
 - Comandos admin: `/leads`, `/confirmar <ID>`
 - Docker Ready
 

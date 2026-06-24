@@ -22,6 +22,7 @@ The admin gets a Telegram notification and can confirm with `/confirmar <ID>`.
 - Validates opening hours (Mon-Fri 9-20h, Sat 9-14h)
 - AI engine with Gemini (local fallback without API)
 - Web dashboard: KPIs, leads table, services chart
+- **Bot controls** in the dashboard header: Start / Stop / Restart the Telegram polling without restarting the server
 - Admin commands: `/leads`, `/confirmar <ID>`
 - Docker ready
 
