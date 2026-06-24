@@ -1,12 +1,12 @@
-# Dental Bot — Telegram Bot for Dental Clinics
+# Medical Bot — Telegram Bot for Medical Clinics
 
-Telegram bot with AI (Google Gemini) to capture leads, answer queries and manage appointments automatically. Includes a web dashboard with real-time KPIs.
+Telegram bot with AI (Google Gemini) to capture leads, answer queries and manage appointments automatically. Includes a web dashboard with real-time KPIs. Adaptable to any medical or healthcare clinic.
 
 ## Demo
 
 ```
-Patient -> "I'd like a cleaning"
-Bot     -> "Hello! A dental cleaning costs 60 EUR.
+Patient -> "I'd like a check-up"
+Bot     -> "Hello! A general check-up costs 60 EUR.
             What name should I put the appointment under?"
 Patient -> "Ana Garcia, Tuesday morning"
 Bot     -> "Perfect, Ana. Appointment registered for Tuesday morning.
@@ -18,7 +18,7 @@ The admin gets a Telegram notification and can confirm with `/confirmar <ID>`.
 ## Features
 
 - State-machine conversation flow (name -> service -> time slot)
-- Detects 6 dental services with configurable prices
+- Detects services with configurable prices
 - Validates opening hours (Mon-Fri 9-20h, Sat 9-14h)
 - AI engine with Gemini (local fallback without API)
 - Web dashboard: KPIs, leads table, services chart
@@ -39,8 +39,8 @@ The admin gets a Telegram notification and can confirm with `/confirmar <ID>`.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Cid736/dental-bot.git
-cd dental-bot
+git clone https://github.com/Cid736/medical-bot.git
+cd medical-bot
 
 # 2. Install dependencies
 npm install
@@ -59,7 +59,7 @@ npm start
 Once running:
 - The bot responds on Telegram automatically
 - Dashboard available at `http://localhost:3000`
-- Leads are saved to `dental_bot.db` (created automatically)
+- Leads are saved to `medical_bot.db` (created automatically)
 
 ## REST API
 
@@ -71,7 +71,7 @@ Once running:
 ## Structure
 
 ```
-dental-bot/
+medical-bot/
 ├── index.js           -> Telegram bot + Express server
 ├── db.js              -> SQLite (schema + CRUD)
 ├── ai.js              -> Conversation engine + Gemini
@@ -85,7 +85,7 @@ dental-bot/
 
 ## Customization
 
-Edit `ai.js` to adapt the bot to another clinic:
+Edit `ai.js` to adapt the bot to any clinic:
 - `SERVICIOS` -> service catalog and prices
 - `SYSTEM_PROMPT` -> clinic name and bot personality
 - `FLOWS` -> predefined fallback responses
