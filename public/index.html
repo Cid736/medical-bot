@@ -71,7 +71,14 @@
     .hdr-right  { display:flex; align-items:center; gap:12px; }
     .bot-pill   { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:4px 11px; color:rgba(255,255,255,.75); font-size:12px; font-weight:500; }
     .dot-live   { width:7px; height:7px; border-radius:50%; background:#4ade80; animation:blink 2s infinite; }
+    .dot-stopped{ width:7px; height:7px; border-radius:50%; background:#f87171; }
     @keyframes blink { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}50%{box-shadow:0 0 0 5px rgba(74,222,128,0)} }
+    .bot-controls { display:flex; align-items:center; gap:5px; }
+    .bot-ctrl-btn { padding:4px 10px; border-radius:6px; border:none; font-size:11px; font-weight:600; cursor:pointer; transition:opacity .15s; }
+    .bot-ctrl-btn:hover { opacity:.8; }
+    .btn-ctrl-start   { background:#14532d; color:#4ade80; border:1px solid #4ade80; }
+    .btn-ctrl-stop    { background:#450a0a; color:#f87171; border:1px solid #f87171; }
+    .btn-ctrl-restart { background:#1e3a5f; color:#60a5fa; border:1px solid #60a5fa; }
     .hdr-user   { font-size:12px; color:rgba(255,255,255,.55); }
     .hdr-logout { background:rgba(255,255,255,.1); border:none; color:rgba(255,255,255,.6); font-size:11.5px; padding:4px 10px; border-radius:7px; cursor:pointer; }
     .hdr-logout:hover { background:rgba(255,255,255,.18); color:#fff; }
@@ -434,7 +441,12 @@
     </div>
   </div>
   <div class="hdr-right">
-    <div class="bot-pill"><span class="dot-live"></span> Bot activo</div>
+    <div class="bot-pill" id="botPill"><span id="botDot" class="dot-live"></span> <span id="botLabel">Bot activo</span></div>
+    <div class="bot-controls">
+      <button class="bot-ctrl-btn btn-ctrl-start"   onclick="botCtrl('start')">&#9654; Start</button>
+      <button class="bot-ctrl-btn btn-ctrl-stop"    onclick="botCtrl('stop')">&#9646;&#9646; Stop</button>
+      <button class="bot-ctrl-btn btn-ctrl-restart" onclick="botCtrl('restart')">&#8635; Restart</button>
+    </div>
     <span class="hdr-user" id="hdrUser"></span>
     <button class="hdr-logout" onclick="doLogout()">Salir</button>
   </div>
@@ -936,6 +948,30 @@ async function doLogin() {
     hideLogin();
     load();
   } catch { document.getElementById('loginErr').textContent = 'Error de conexión'; }
+}
+
+async function updateBotPill() {
+  try {
+    const r = await api('GET', '/api/bot/status');
+    const dot   = document.getElementById('botDot');
+    const label = document.getElementById('botLabel');
+    if (r.polling) {
+      dot.className   = 'dot-live';
+      label.textContent = 'Bot activo';
+    } else {
+      dot.className   = 'dot-stopped';
+      label.textContent = 'Bot detenido';
+    }
+  } catch {}
+}
+
+async function botCtrl(action) {
+  try {
+    await api('POST', `/api/bot/${action}`);
+    await updateBotPill();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
 }
 
 async function doLogout() {
@@ -1625,6 +1661,7 @@ function renderProximasCitas() {
 // ════════════════════════════════════════════════════════════════════════════
 async function load() {
   try {
+    updateBotPill();
     const [sR,lR] = await Promise.all([api('GET','/api/stats'),api('GET','/api/leads')]);
     const stats   = await sR.json();
     allLeads      = await lR.json();

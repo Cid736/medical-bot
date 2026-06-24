@@ -187,6 +187,30 @@ app.get('/api/slots/:professionalId/:date', requireAuth, (req, res) => {
   return res.json(slots);
 });
 
+// ── BOT CONTROLS ─────────────────────────────────────────────────────────────
+
+app.get('/api/bot/status', requireAuth, (_req, res) => {
+  res.json({ polling: bot.isPolling() });
+});
+
+app.post('/api/bot/stop', requireAuth, async (_req, res) => {
+  try { await bot.stopPolling(); res.json({ ok: true, polling: false }); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.post('/api/bot/start', requireAuth, async (_req, res) => {
+  try { await bot.startPolling(); res.json({ ok: true, polling: true }); }
+  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+app.post('/api/bot/restart', requireAuth, async (_req, res) => {
+  try {
+    await bot.stopPolling();
+    await bot.startPolling();
+    res.json({ ok: true, polling: true });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
 // ── SERVER ────────────────────────────────────────────────────────────────────
 
 authRouter.seedAdmin();
