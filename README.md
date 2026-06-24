@@ -1,4 +1,12 @@
-# Medical Bot — Telegram Bot for Medical Clinics
+<p align="center">
+  <a href="#english">🇬🇧 English</a> &nbsp;·&nbsp; <a href="#español">🇪🇸 Español</a>
+</p>
+
+---
+
+<a name="english"></a>
+
+# Medical Bot
 
 Telegram bot with AI (Google Gemini) to capture leads, answer queries and manage appointments automatically. Includes a web dashboard with real-time KPIs. Adaptable to any medical or healthcare clinic.
 
@@ -39,19 +47,12 @@ The admin gets a Telegram notification and can confirm with `/confirmar <ID>`.
 ## Setup
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Cid736/medical-bot.git
 cd medical-bot
-
-# 2. Install dependencies
 npm install
-
-# 3. Configure environment variables
 cp .env.example .env
-# Edit .env with your TELEGRAM_TOKEN (get it from https://t.me/BotFather)
+# Edit .env with your TELEGRAM_TOKEN (https://t.me/BotFather)
 # and optionally your GEMINI_API_KEY (https://aistudio.google.com/apikey)
-
-# 4. Start
 npm start
 ```
 
@@ -95,29 +96,102 @@ Edit `ai.js` to adapt the bot to any clinic:
 
 ```bash
 docker compose up -d
+# Dashboard at http://localhost:3000
 ```
-
-Access the dashboard at `http://localhost:3000`.
 
 ## Changelog
 
 **v0.2.2** — 2026-06-24
 - Security: hardcoded admin password removed from source — `ADMIN_PASSWORD` is now required in `.env`; server exits on startup if missing
-- Security: `PATCH /:id/estado` and `PATCH /:id/professional` routes were protected by read-only permission (`citas.ver`), now require write permission (`citas.confirmar`)
-- Security: PII fields (`dni`, `contact`, `notes`) masked for non-superadmin roles — only accounts with `citas.pii` permission receive them
-- Security: IDOR fixed on `PATCH /bookings/:id/estado` and `DELETE /bookings/:id` — existence check added before operating
-- Security: `getBookingById()` method added to `db.js` (was missing, causing potential 500)
+- Security: `PATCH /:id/estado` and `PATCH /:id/professional` routes now require write permission (`citas.confirmar`)
+- Security: PII fields (`dni`, `contact`, `notes`) masked for non-superadmin roles
+- Security: IDOR fixed on `PATCH /bookings/:id/estado` and `DELETE /bookings/:id`
 - Admin password no longer printed to console logs
 
 **v0.2.1** — 2026-06-24
-- Fix: bot Start/Restart endpoints now guard with `isPolling()` to prevent error 500 on double-start
+- Fix: bot Start/Restart endpoints now guard with `isPolling()` to prevent 500 on double-start
 - Fix: `professional_id` filter was silently ignored in lead export — now applied correctly
 
 **v0.2.0** — 2026-06-23
 - Feat: bot controls in dashboard header (Start / Stop / Restart without server restart)
-- Feat: alpha version banner
 - Feat: RGPD consent gate, data encryption, audit log, RBAC roles and permissions
 - Refactor: renamed from dental-bot to medical-bot
 
 **v0.1.0** — 2026-05-01
 - Initial release: Telegram bot, lead capture, SQLite, web dashboard
+
+## License
+
+MIT
+
+---
+
+<a name="español"></a>
+
+# Medical Bot
+
+Bot de Telegram con IA (Google Gemini) para capturar leads, responder consultas y gestionar citas automáticamente. Incluye un panel web con KPIs en tiempo real. Adaptable a cualquier clínica médica o sanitaria.
+
+## Demo
+
+```
+Paciente -> "Quiero hacerme una revisión"
+Bot      -> "¡Hola! Una revisión general cuesta 60 EUR.
+             ¿A qué nombre pongo la cita?"
+Paciente -> "Ana García, el martes por la mañana"
+Bot      -> "Perfecto, Ana. Cita registrada para el martes por la mañana.
+             Recibirás confirmación en breve."
+```
+
+El admin recibe una notificación en Telegram y puede confirmar con `/confirmar <ID>`.
+
+## Características
+
+- Flujo de conversación por máquina de estados (nombre -> servicio -> horario)
+- Detección de servicios con precios configurables
+- Validación de horarios de apertura (Lun-Vie 9-20h, Sáb 9-14h)
+- Motor de IA con Gemini (fallback local sin API)
+- Panel web: KPIs, tabla de leads, gráfico de servicios
+- **Controles del bot** en la cabecera del panel: Iniciar / Detener / Reiniciar el polling sin reiniciar el servidor
+- Comandos de admin: `/leads`, `/confirmar <ID>`
+- Listo para Docker
+
+## Stack
+
+| Paquete | Función |
+|---|---|
+| `node-telegram-bot-api` | Conexión con Telegram via polling |
+| `@google/generative-ai` | Respuestas con IA (Gemini, gratuito) |
+| `better-sqlite3` | Base de datos SQLite local |
+| `express` | Panel web + API REST |
+| `dotenv` | Variables de entorno |
+
+## Instalación
+
+```bash
+git clone https://github.com/Cid736/medical-bot.git
+cd medical-bot
+npm install
+cp .env.example .env
+# Edita .env con tu TELEGRAM_TOKEN (https://t.me/BotFather)
+# y opcionalmente tu GEMINI_API_KEY (https://aistudio.google.com/apikey)
+npm start
+```
+
+## Personalización
+
+Edita `ai.js` para adaptar el bot a cualquier clínica:
+- `SERVICIOS` -> catálogo de servicios y precios
+- `SYSTEM_PROMPT` -> nombre de la clínica y personalidad del bot
+- `FLOWS` -> respuestas de fallback predefinidas
+
+## Docker
+
+```bash
+docker compose up -d
+# Panel disponible en http://localhost:3000
+```
+
+## Licencia
+
+MIT
