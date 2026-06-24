@@ -679,6 +679,7 @@ module.exports = {
     if (from)            { sql += ' AND date(fecha_cita) >= ?'; params.push(from); }
     if (to)              { sql += ' AND date(fecha_cita) <= ?'; params.push(to); }
     if (estado)          { sql += ' AND estado = ?'; params.push(estado); }
+    if (professional_id) { sql += ' AND professional_id = ?'; params.push(professional_id); }
     if (mutua)           { sql += ' AND mutua LIKE ?'; params.push('%' + mutua + '%'); }
     if (service)         { sql += ' AND service LIKE ?'; params.push('%' + service + '%'); }
     sql += ' ORDER BY fecha_cita DESC, id DESC';
