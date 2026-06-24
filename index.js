@@ -199,13 +199,15 @@ app.post('/api/bot/stop', requireAuth, async (_req, res) => {
 });
 
 app.post('/api/bot/start', requireAuth, async (_req, res) => {
-  try { await bot.startPolling(); res.json({ ok: true, polling: true }); }
-  catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+  try {
+    if (!bot.isPolling()) await bot.startPolling();
+    res.json({ ok: true, polling: true });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
 
 app.post('/api/bot/restart', requireAuth, async (_req, res) => {
   try {
-    await bot.stopPolling();
+    if (bot.isPolling()) await bot.stopPolling();
     await bot.startPolling();
     res.json({ ok: true, polling: true });
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
