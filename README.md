@@ -124,6 +124,12 @@ docker compose up -d
 
 MIT
 
+## Security
+
+Automated security reviews are powered by [Claude](https://claude.ai) (Anthropic AI) and run on every significant change to detect vulnerabilities, insecure patterns and dependency risks. Findings are tracked in `BUGLOG.md`.
+
+Found a vulnerability? Open an issue or contact directly.
+
 ---
 
 <a name="español"></a>
@@ -192,6 +198,11 @@ docker compose up -d
 # Panel disponible en http://localhost:3000
 ```
 
+## Seguridad
+
+Las revisiones de seguridad automatizadas utilizan [Claude](https://claude.ai) (Anthropic AI) y se ejecutan en cada cambio significativo para detectar vulnerabilidades, patrones inseguros y riesgos en dependencias. Los hallazgos se registran en `BUGLOG.md`.
+
+¿Encontraste una vulnerabilidad? Abre un issue o contacta directamente.
 ## Licencia
 
 MIT
