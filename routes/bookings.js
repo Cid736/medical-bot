@@ -36,7 +36,7 @@ router.post('/', requireAuth, requirePerm('agenda.reservar'), (req, res) => {
   if (result.changes === 0)
     return res.status(409).json({ error: 'Horario no disponible', code: 'SLOT_TAKEN' });
 
-  if (lead_id) db.updateLeadProfessional(Number(lead_id), patient_name || null);
+  if (lead_id && professional_id) db.updateLeadProfessionalId(Number(lead_id), Number(professional_id));
   audit(req, 'CREATE', 'booking', result.lastInsertRowid, null, { professional_id, date_slot, time_slot, patient_name, service });
   return res.status(201).json({ id: result.lastInsertRowid });
 });
