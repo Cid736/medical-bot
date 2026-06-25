@@ -1,5 +1,12 @@
 # Bug Log — dental-bot
 
+## 2026-06-25 — Revisión 5 (npm audit)
+
+### [CRITICAL] CVE en `request` (SSRF) y `form-data` (CRLF injection) via node-telegram-bot-api 0.61.x
+- **Paquete:** `node-telegram-bot-api` ^0.61.0
+- **Descripción:** La versión 0.61.x usa internamente la librería `request` (abandonada, con vulnerabilidad de SSRF) y `form-data` (CRLF injection en nombres de campo multipart). Ambas tienen CVEs CRITICAL activos sin fix disponible en la rama 0.x.
+- **Fix:** Actualizado a `node-telegram-bot-api@1.1.2` que usa `fetch` nativo en lugar de `request`. Ajustado el import para manejar el export por defecto de ES Module (`mod.default || mod`).
+
 ## 2026-06-25 — Revisión 1
 
 ### [MEDIUM] Sin rate limiting en endpoint público de lookup de pacientes
