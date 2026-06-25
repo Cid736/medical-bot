@@ -21,11 +21,14 @@ router.get('/', requireAuth, requirePerm('usuarios.ver'), (req, res) => {
 });
 
 router.post('/', requireAuth, requirePerm('usuarios.gestionar'), (req, res) => {
+  const VALID_ROLES = ['superadmin', 'admin', 'recepcionista', 'medico', 'readonly'];
   const { username, password, name, role } = req.body || {};
   if (!username?.trim() || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+  const safeRole = role || 'admin';
+  if (!VALID_ROLES.includes(safeRole)) return res.status(400).json({ error: `Rol inválido. Válidos: ${VALID_ROLES.join(', ')}` });
   if (db.getUserByUsername(username.trim())) return res.status(409).json({ error: 'El usuario ya existe' });
   const salt = generateSalt();
-  db.createUser(username.trim(), hashPassword(password, salt), salt, (name || '').trim() || username.trim(), role || 'admin');
+  db.createUser(username.trim(), hashPassword(password, salt), salt, (name || '').trim() || username.trim(), safeRole);
   audit(req, 'CREATE_USER', 'user', username.trim(), null, { username: username.trim(), name, role });
   return res.status(201).json({ ok: true });
 });

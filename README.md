@@ -204,7 +204,7 @@ docker compose up -d
 
 Las revisiones de seguridad automatizadas utilizan [Claude](https://claude.ai) (Anthropic AI) y se ejecutan en cada cambio significativo para detectar vulnerabilidades, patrones inseguros y riesgos en dependencias. Los hallazgos se registran en [`BUGLOG.md`](BUGLOG.md).
 
-**Última revisión:** 2026-06-25 — 4 vulnerabilidades encontradas (1 crítica⚠️ acción manual requerida, 1 media, 2 bajas) — código parcheado. Rotar token de Telegram manualmente.
+**Última revisión:** 2026-06-25 (rev 3) — 7 vulnerabilidades totales (1 crítica⚠️ acción manual requerida, 3 medias, 3 bajas) — código parcheado. Revisión 3: validación de date_slot/time_slot, cabeceras de seguridad HTTP, allowlist de roles. Rotar token de Telegram manualmente.
 
 ¿Encontraste una vulnerabilidad? Abre un issue o contacta directamente.
 ## Licencia

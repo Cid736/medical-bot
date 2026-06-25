@@ -24,3 +24,19 @@
 ### [LOW] Error lógico: nombre de paciente guardado como profesional en bookings
 - **Archivo:** `routes/bookings.js`
 - **Fix:** Reemplazado `db.updateLeadProfessional(lead_id, patient_name)` por `db.updateLeadProfessionalId(lead_id, professional_id)`.
+
+---
+
+## 2026-06-25 — Revisión 3
+
+### [MEDIUM] `date_slot` y `time_slot` sin validación de formato
+- **Archivo:** `routes/bookings.js` líneas 23-35
+- **Fix:** Validación con regex: `date_slot` debe coincidir con `YYYY-MM-DD`, `time_slot` con `HH:MM`.
+
+### [MEDIUM] Sin cabeceras de seguridad HTTP
+- **Archivo:** `index.js`
+- **Fix:** Añadido middleware global que inyecta `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block` y `Referrer-Policy: strict-origin-when-cross-origin`.
+
+### [LOW] Campo `role` no validado en creación de usuarios
+- **Archivo:** `routes/users.js` línea 36
+- **Fix:** Añadida allowlist `['superadmin','admin','recepcionista','medico','readonly']`. Se devuelve HTTP 400 si el rol enviado no está en la lista.

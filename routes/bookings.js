@@ -23,6 +23,10 @@ router.post('/', requireAuth, requirePerm('agenda.reservar'), (req, res) => {
   const { professional_id, date_slot, time_slot, lead_id, patient_name, service } = req.body || {};
   if (!professional_id || !date_slot || !time_slot)
     return res.status(400).json({ error: 'Faltan campos obligatorios' });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date_slot))
+    return res.status(400).json({ error: 'Formato de fecha inválido (YYYY-MM-DD)' });
+  if (!/^\d{2}:\d{2}$/.test(time_slot))
+    return res.status(400).json({ error: 'Formato de hora inválido (HH:MM)' });
 
   // Prevent same professional from having overlapping slots
   if (db.isSlotBooked(Number(professional_id), date_slot, time_slot))
