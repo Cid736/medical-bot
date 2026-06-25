@@ -154,7 +154,9 @@ const migrations = [
 ];
 
 for (const sql of migrations) {
-  try { db.prepare(sql).run(); } catch (_) {}
+  try { db.prepare(sql).run(); } catch (e) {
+    if (!e.message?.includes('duplicate column name')) throw e;
+  }
 }
 
 function migrateProfessionalIds() {

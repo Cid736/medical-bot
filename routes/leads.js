@@ -2,6 +2,7 @@ const express = require('express');
 const db      = require('../db');
 const { requireAuth, requirePerm } = require('../middleware/auth');
 const { audit } = require('../services/audit');
+const { apiRateLimit } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
@@ -127,7 +128,7 @@ router.post('/:id/anonymize', requireAuth, requirePerm('citas.eliminar'), (req, 
 });
 
 // Patient lookup — public (no auth required)
-router.post('/patient/lookup', (req, res) => {
+router.post('/patient/lookup', apiRateLimit, (req, res) => {
   const { cita, dni } = req.body || {};
   if (!cita || !dni) return res.status(400).json({ error: 'Código de cita y DNI requeridos' });
   const lead = db.getLeadByCita(cita.trim().toUpperCase());
