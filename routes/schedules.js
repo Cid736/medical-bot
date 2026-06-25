@@ -11,7 +11,7 @@ router.get('/:professionalId', requireAuth, requirePerm('horarios.ver'), (req, r
 
 router.post('/', requireAuth, requirePerm('horarios.gestionar'), (req, res) => {
   const VALID_DURATIONS = [15, 20, 30, 60];
-  const TIME_RE = /^\d{2}:\d{2}$/;
+  const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
   const { professional_id, day_of_week, start_time, end_time, slot_duration } = req.body || {};
   if (!professional_id || !day_of_week || !start_time || !end_time)
     return res.status(400).json({ error: 'Faltan campos obligatorios' });

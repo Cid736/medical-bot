@@ -6,6 +6,8 @@ const { audit } = require('../services/audit');
 
 const router = express.Router();
 
+const VALID_ROLES = ['superadmin', 'admin', 'manager', 'administrativo', 'enfermeria', 'doctor'];
+
 function hashPassword(password, salt) {
   return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
 }
@@ -21,10 +23,9 @@ router.get('/', requireAuth, requirePerm('usuarios.ver'), (req, res) => {
 });
 
 router.post('/', requireAuth, requirePerm('usuarios.gestionar'), (req, res) => {
-  const VALID_ROLES = ['superadmin', 'admin', 'recepcionista', 'medico', 'readonly'];
   const { username, password, name, role } = req.body || {};
   if (!username?.trim() || !password) return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
-  const safeRole = role || 'admin';
+  const safeRole = role || 'doctor';
   if (!VALID_ROLES.includes(safeRole)) return res.status(400).json({ error: `Rol inválido. Válidos: ${VALID_ROLES.join(', ')}` });
   if (db.getUserByUsername(username.trim())) return res.status(409).json({ error: 'El usuario ya existe' });
   const salt = generateSalt();
@@ -34,10 +35,9 @@ router.post('/', requireAuth, requirePerm('usuarios.gestionar'), (req, res) => {
 });
 
 router.put('/:id', requireAuth, requirePerm('usuarios.gestionar'), (req, res) => {
-  const VALID_ROLES = ['superadmin', 'admin', 'recepcionista', 'medico', 'readonly'];
   const id = Number(req.params.id);
   const { name, role } = req.body || {};
-  const safeRole = role || 'admin';
+  const safeRole = role || 'doctor';
   if (!VALID_ROLES.includes(safeRole)) return res.status(400).json({ error: `Rol inválido. Válidos: ${VALID_ROLES.join(', ')}` });
   db.updateUser(id, (name || '').trim(), safeRole);
   audit(req, 'UPDATE_USER', 'user', id, null, { name, role: safeRole });
