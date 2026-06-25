@@ -10,10 +10,17 @@ router.get('/:professionalId', requireAuth, requirePerm('horarios.ver'), (req, r
 );
 
 router.post('/', requireAuth, requirePerm('horarios.gestionar'), (req, res) => {
+  const VALID_DURATIONS = [15, 20, 30, 60];
+  const TIME_RE = /^\d{2}:\d{2}$/;
   const { professional_id, day_of_week, start_time, end_time, slot_duration } = req.body || {};
   if (!professional_id || !day_of_week || !start_time || !end_time)
     return res.status(400).json({ error: 'Faltan campos obligatorios' });
-  db.setDaySchedule(Number(professional_id), Number(day_of_week), start_time, end_time, Number(slot_duration) || 30);
+  if (!TIME_RE.test(start_time) || !TIME_RE.test(end_time))
+    return res.status(400).json({ error: 'Formato de hora inválido (HH:MM)' });
+  const dur = Number(slot_duration) || 30;
+  if (!VALID_DURATIONS.includes(dur))
+    return res.status(400).json({ error: `Duración inválida. Válidas: ${VALID_DURATIONS.join(', ')} min` });
+  db.setDaySchedule(Number(professional_id), Number(day_of_week), start_time, end_time, dur);
   audit(req, 'SET_SCHEDULE', 'schedule', `${professional_id}:${day_of_week}`, null, { start_time, end_time, slot_duration });
   return res.json({ ok: true });
 });

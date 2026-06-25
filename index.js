@@ -190,6 +190,8 @@ app.use('/api/users',          usersRouter);
 app.use('/api/audit-logs',     auditRouter);
 app.use('/api/rbac',           rbacRouter);
 app.get('/api/slots/:professionalId/:date', requireAuth, (req, res) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(req.params.date))
+    return res.status(400).json({ error: 'Formato de fecha inválido (YYYY-MM-DD)' });
   const slots = db.getAvailableSlots(Number(req.params.professionalId), req.params.date);
   return res.json(slots);
 });

@@ -40,3 +40,32 @@
 ### [LOW] Campo `role` no validado en creación de usuarios
 - **Archivo:** `routes/users.js` línea 36
 - **Fix:** Añadida allowlist `['superadmin','admin','recepcionista','medico','readonly']`. Se devuelve HTTP 400 si el rol enviado no está en la lista.
+
+---
+
+## 2026-06-25 — Revisión 4 (Auditoría profesional completa)
+
+### [HIGH] Campo `role` en PUT /users/:id aceptaba valores arbitrarios
+- **Archivo:** `routes/users.js` línea 39
+- **Descripción:** El endpoint de edición de usuario no validaba el rol, permitiendo escalada de privilegios via petición directa.
+- **Fix:** Añadida allowlist `VALID_ROLES` con los mismos 5 valores permitidos. HTTP 400 si el rol no está en la lista.
+
+### [MEDIUM] Campos `start_time`/`end_time` en horarios sin validación de formato
+- **Archivo:** `routes/schedules.js` línea 14
+- **Descripción:** Los campos de hora se pasaban directamente a la base de datos sin ninguna validación de formato.
+- **Fix:** Regex `^\d{2}:\d{2}$` aplicada a `start_time` y `end_time`. `slot_duration` restringido a valores permitidos: `[15, 20, 30, 60]`.
+
+### [MEDIUM] Fecha en `/api/slots/:professionalId/:date` sin validación
+- **Archivo:** `index.js` línea 192
+- **Descripción:** El parámetro `:date` se enviaba directamente a SQLite sin validar el formato, posible inyección por path traversal.
+- **Fix:** Validación `^\d{4}-\d{2}-\d{2}$` antes de la consulta. HTTP 400 con mensaje claro si el formato es inválido.
+
+### [LOW] Auditoría silencia errores completamente
+- **Archivo:** `services/audit.js` línea 17
+- **Descripción:** `catch (_) {}` descartaba errores de escritura en el audit log sin traza alguna.
+- **Fix:** Añadido `console.error('[audit] Failed to write audit log:', err.message)`.
+
+### [LOW] `.dockerignore` no excluía archivos `.env`
+- **Archivo:** `.dockerignore`
+- **Descripción:** `.env.local` estaba excluido pero `.env` y `.env.*` no, lo que podría incluir secretos en la imagen Docker.
+- **Fix:** Añadidas entradas `.env` y `.env.*` al `.dockerignore`.

@@ -14,7 +14,9 @@ function audit(req, action, entityType, entityId, oldData, newData) {
       newData,
       ip
     );
-  } catch (_) {}
+  } catch (err) {
+    console.error('[audit] Failed to write audit log:', err.message);
+  }
 }
 
 module.exports = { audit };

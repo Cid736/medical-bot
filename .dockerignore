@@ -2,7 +2,8 @@ node_modules
 npm-debug.log
 .wwebjs_auth
 datos
-.env.local
+.env
+.env.*
 .git
 .gitignore
 README.md

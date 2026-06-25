@@ -34,10 +34,13 @@ router.post('/', requireAuth, requirePerm('usuarios.gestionar'), (req, res) => {
 });
 
 router.put('/:id', requireAuth, requirePerm('usuarios.gestionar'), (req, res) => {
+  const VALID_ROLES = ['superadmin', 'admin', 'recepcionista', 'medico', 'readonly'];
   const id = Number(req.params.id);
   const { name, role } = req.body || {};
-  db.updateUser(id, (name || '').trim(), role || 'admin');
-  audit(req, 'UPDATE_USER', 'user', id, null, { name, role });
+  const safeRole = role || 'admin';
+  if (!VALID_ROLES.includes(safeRole)) return res.status(400).json({ error: `Rol inválido. Válidos: ${VALID_ROLES.join(', ')}` });
+  db.updateUser(id, (name || '').trim(), safeRole);
+  audit(req, 'UPDATE_USER', 'user', id, null, { name, role: safeRole });
   return res.json({ ok: true });
 });
 
