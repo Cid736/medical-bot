@@ -2,11 +2,13 @@ const crypto = require('crypto');
 
 const KEY_HEX = process.env.ENCRYPTION_KEY || '';
 const ALGO    = 'aes-256-gcm';
-const ENABLED = KEY_HEX.length === 64; // 32 bytes hex
 
-if (!ENABLED) {
-  console.warn('[crypto] ENCRYPTION_KEY not set or invalid — sensitive fields stored in plaintext. Set a 64-char hex key in .env to enable encryption.');
+if (KEY_HEX.length !== 64) {
+  console.error('[FATAL] ENCRYPTION_KEY must be a 64-character hex string (32 bytes). Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+  process.exit(1);
 }
+
+const ENABLED = true;
 
 function encrypt(text) {
   if (!ENABLED || text == null) return text;
