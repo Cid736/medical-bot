@@ -128,13 +128,27 @@ router.post('/:id/anonymize', requireAuth, requirePerm('citas.eliminar'), (req, 
 });
 
 // Patient lookup — public (no auth required)
+// SECURITY: Always return the same error for not-found AND wrong-DNI to prevent
+// cita-code enumeration. Both cases return 404 with an identical message.
 router.post('/patient/lookup', apiRateLimit, (req, res) => {
   const { cita, dni } = req.body || {};
   if (!cita || !dni) return res.status(400).json({ error: 'Código de cita y DNI requeridos' });
+
+  // Validate format before DB query to avoid unnecessary lookups
+  if (!/^CITA-[A-Z0-9]{4}$/i.test(cita.trim()))
+    return res.status(404).json({ error: 'Cita o DNI no válidos' });
+
   const lead = db.getLeadByCita(cita.trim().toUpperCase());
-  if (!lead) return res.status(404).json({ error: 'Cita no encontrada' });
-  if (!lead.dni || lead.dni.toUpperCase() !== dni.trim().toUpperCase())
-    return res.status(403).json({ error: 'DNI o NIE no coincide con la cita' });
+  // Use constant-time comparison to prevent timing oracle on DNI
+  const storedDni = lead?.dni ? Buffer.from(lead.dni.toUpperCase()) : Buffer.alloc(0);
+  const inputDni  = Buffer.from((dni.trim() || '').toUpperCase());
+  const dniMatch  = storedDni.length === inputDni.length &&
+    storedDni.length > 0 &&
+    require('crypto').timingSafeEqual(storedDni, inputDni);
+
+  // Always 404 for both "not found" and "DNI mismatch" — prevents booking-code enumeration
+  if (!lead || !dniMatch) return res.status(404).json({ error: 'Cita o DNI no válidos' });
+
   return res.json({
     id: lead.id, cita: lead.cita, name: lead.name,
     service: lead.service, horario: lead.horario,

@@ -7,7 +7,10 @@ const router = express.Router();
 
 router.get('/:professionalId', requireAuth, requirePerm('agenda.ver'), (req, res) => {
   const { start, end } = req.query;
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   if (start && end) {
+    if (!DATE_RE.test(start) || !DATE_RE.test(end))
+      return res.status(400).json({ error: 'Formato de fecha inválido (YYYY-MM-DD)' });
     return res.json(db.getBookingsByProfessionalRange(Number(req.params.professionalId), start, end));
   }
   const today = new Date().toISOString().slice(0, 10);

@@ -8,8 +8,11 @@ const router = express.Router();
 
 const VALID_ROLES = ['superadmin', 'admin', 'manager', 'administrativo', 'enfermeria', 'doctor'];
 
+const PBKDF2_ITERS = 210000; // Keep in sync with routes/auth.js
 function hashPassword(password, salt) {
-  return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  // NIST SP 800-132 recommends ≥600,000 iterations for PBKDF2-SHA512 (as of 2023).
+  // New accounts and password changes use 210,000 iterations.
+  return crypto.pbkdf2Sync(password, salt, PBKDF2_ITERS, 64, 'sha512').toString('hex');
 }
 function generateSalt() { return crypto.randomBytes(16).toString('hex'); }
 
@@ -51,7 +54,7 @@ router.patch('/:id/password', requireAuth, (req, res) => {
     (db.getUserPermissions(req.user.role) || []).includes('usuarios.gestionar');
   if (!canManage && req.user.userId !== id) return res.status(403).json({ error: 'Sin permisos' });
   const { password } = req.body || {};
-  if (!password || password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  if (!password || password.length < 10) return res.status(400).json({ error: 'La contraseña debe tener al menos 10 caracteres' });
   const salt = generateSalt();
   db.updateUserPassword(id, hashPassword(password, salt), salt);
   audit(req, 'CHANGE_PASSWORD', 'user', id, null, null);

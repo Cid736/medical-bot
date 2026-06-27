@@ -6,8 +6,11 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-function hashPassword(password, salt) {
-  return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+const PBKDF2_ITERS = 210000; // NIST SP 800-132 (2023): ≥600k for SHA-512; 210k is a practical minimum
+const PBKDF2_ITERS_LEGACY = 10000; // old value — only used for migration check
+
+function hashPassword(password, salt, iters = PBKDF2_ITERS) {
+  return crypto.pbkdf2Sync(password, salt, iters, 64, 'sha512').toString('hex');
 }
 function generateSalt()  { return crypto.randomBytes(16).toString('hex'); }
 function generateToken() { return crypto.randomBytes(32).toString('hex'); }
@@ -17,7 +20,11 @@ function seedAdmin() {
   const users = db.getAllUsers();
   if (!users.length) {
     if (!process.env.ADMIN_PASSWORD) {
-      console.error('\n[dental-bot] FATAL: ADMIN_PASSWORD no está definido en .env — necesario para crear el admin inicial\n');
+      console.error('\n[medical-bot] FATAL: ADMIN_PASSWORD no está definido en .env — necesario para crear el admin inicial\n');
+      process.exit(1);
+    }
+    if (process.env.ADMIN_PASSWORD.length < 10) {
+      console.error('\n[medical-bot] FATAL: ADMIN_PASSWORD debe tener al menos 10 caracteres\n');
       process.exit(1);
     }
     const username = process.env.ADMIN_USERNAME || 'admin';
@@ -40,8 +47,20 @@ router.post('/login', (req, res) => {
   if (!username || !password) return res.status(400).json({ error: 'Credenciales requeridas' });
   const user = db.getUserByUsername(username.trim());
   if (!user || !user.active) return res.status(401).json({ error: 'Credenciales incorrectas' });
-  const hash = hashPassword(password, user.salt);
-  if (hash !== user.password_hash) return res.status(401).json({ error: 'Credenciales incorrectas' });
+
+  // Check new iteration count first; fall back to legacy count for existing accounts
+  const hashNew    = hashPassword(password, user.salt, PBKDF2_ITERS);
+  const hashLegacy = hashPassword(password, user.salt, PBKDF2_ITERS_LEGACY);
+  const isNew    = hashNew    === user.password_hash;
+  const isLegacy = hashLegacy === user.password_hash;
+  if (!isNew && !isLegacy) return res.status(401).json({ error: 'Credenciales incorrectas' });
+
+  // Transparently upgrade legacy hashes on successful login
+  if (isLegacy) {
+    const newSalt = generateSalt();
+    db.updateUserPassword(user.id, hashPassword(password, newSalt, PBKDF2_ITERS), newSalt);
+  }
+
   const token = generateToken();
   db.createSession(token, user.id, user.username, user.name, user.role, user.clinic_id || 1, Date.now() + SESSION_TTL);
   const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || null;

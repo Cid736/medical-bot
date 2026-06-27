@@ -200,13 +200,56 @@ docker compose up -d
 # Panel disponible en http://localhost:3000
 ```
 
-## Seguridad
+## Security
 
-Las revisiones de seguridad automatizadas utilizan [Claude](https://claude.ai) (Anthropic AI) y se ejecutan en cada cambio significativo para detectar vulnerabilidades, patrones inseguros y riesgos en dependencias. Los hallazgos se registran en [`BUGLOG.md`](BUGLOG.md).
+Las revisiones de seguridad se realizan con [Claude Code](https://claude.ai) (Anthropic AI) en cada cambio significativo. Los hallazgos históricos se registran en [`BUGLOG.md`](BUGLOG.md).
 
-**Última revisión:** 2026-06-25 (rev 5) — 14 vulnerabilidades totales parcheadas (1 crítica token⚠️ acción manual, 2 CRITICAL CVE corregidos, 4 altas, 4 medias, 3 bajas). Revisión 5: node-telegram-bot-api 0.61→1.1.2 (fix CRITICAL SSRF+CRLF), ENCRYPTION_KEY ahora obligatoria al arranque. Rotar token de Telegram manualmente.
+**Última revisión:** 2026-06-28 (rev 6)
 
-¿Encontraste una vulnerabilidad? Abre un issue o contacta directamente.
+### Medidas implementadas
+
+| Área | Mecanismo |
+|---|---|
+| Autenticación dashboard | PBKDF2-SHA512 · 210 000 iteraciones · salt de 16 bytes · migración automática de hashes legacy |
+| Sesiones | Token de 32 bytes aleatorios (256 bits) · TTL 8 h · almacenadas en SQLite · borrado en logout |
+| Cifrado de datos sensibles | AES-256-GCM · IV aleatorio por registro · tag de autenticación · obligatorio al arranque |
+| Datos protegidos | DNI/NIE, teléfono y notas clínicas cifrados en reposo |
+| Cabeceras HTTP | `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| Rate limiting | Ventana deslizante (no fija) · 30 msg/min por chat Telegram · 120 req/min por IP en API |
+| IP de cliente | `X-Forwarded-For` solo se confía con `TRUST_PROXY=1` (detrás de proxy conocido) |
+| RGPD | Consentimiento explícito antes de recopilar datos · anonimización de registros · tabla `consents` |
+| Auditoría | Log completo de todas las acciones CRUD con usuario, rol, IP y datos antes/después |
+| Validación de input bot | Nombre, teléfono, DNI/NIE y mutua validados con regex y checksums antes de guardar |
+| Lookup público de citas | Respuesta uniforme 404 para cita-no-encontrada Y DNI-incorrecto (evita enumeración) · comparación time-safe |
+| Roles y permisos | RBAC dinámico con 20 permisos granulares · caché de permisos con TTL de 5 min |
+| Contraseñas | Mínimo 10 caracteres exigido en panel y en `ADMIN_PASSWORD` de arranque |
+| Dependencias | `node-telegram-bot-api` 1.1.2 (fix CVE SSRF+CRLF) · Express 4.22.x · better-sqlite3 9.6.x |
+| SQLite | Todas las queries usan sentencias preparadas (no hay interpolación de strings en SQL) |
+| Logger | PII filtrada antes de escribir en logs (sin teléfonos, DNI, nombres, tokens) |
+
+### Acción manual pendiente (obligatoria en producción)
+
+- **Rotar `TELEGRAM_TOKEN`** si alguna vez estuvo en el repositorio. Hacerlo desde BotFather con `/revoke`.
+- Generar `ENCRYPTION_KEY` con `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` y guardarla en `.env`. **Nunca commitear esta clave.**
+- Cambiar la contraseña del admin inicial desde el panel después del primer arranque.
+
+### Hallazgos resueltos en revisión 6 (2026-06-28)
+
+| Severidad | Hallazgo | Fix aplicado |
+|---|---|---|
+| ALTA | `getPendingLeads()` devolvía datos sin descifrar al bot Telegram | `db.js` · añadir `.map(decryptLead)` |
+| ALTA | Sin `Content-Security-Policy` — XSS no mitigado en navegadores modernos | `index.js` · cabecera CSP completa |
+| ALTA | Rate limiter con ventana fija (bypasseable con burst antes del reset) | `rateLimit.js` · reescrito con sliding window real |
+| ALTA | PBKDF2 con 10 000 iteraciones (muy por debajo de NIST 2023) | `auth.js`, `users.js` · 210 000 iters + migración transparente de hashes legacy |
+| ALTA | `X-Forwarded-For` confiado ciegamente (bypass rate limit vía header falso) | `rateLimit.js` · solo confiado con `TRUST_PROXY=1` |
+| MEDIA | `date_slot` start/end no validados en GET bookings | `bookings.js` · validación regex YYYY-MM-DD |
+| MEDIA | Lookup público de citas diferenciaba "cita no existe" (404) de "DNI incorrecto" (403) | `leads.js` · respuesta uniforme 404 + comparación `timingSafeEqual` |
+| BAJA | `ENCRYPTION_KEY` ausente de `.env.example` | `.env.example` · añadida con instrucciones |
+| BAJA | Contraseña mínima de 6 caracteres (insuficiente para datos médicos) | `users.js`, `auth.js` · mínimo 10 caracteres |
+| BAJA | `setInterval(() => {}, 30000)` código muerto en dashboard HTML | `public/index.html` · eliminado |
+| INFO | Mensaje seedAdmin citaba "dental-bot" (nombre de proyecto incorrecto) | `auth.js` · corregido a "medical-bot" |
+
+¿Encontraste una vulnerabilidad? Abre un issue privado o contacta directamente.
 ## Licencia
 
 MIT

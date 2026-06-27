@@ -318,7 +318,7 @@ module.exports = {
   },
 
   getPendingLeads() {
-    return db.prepare('SELECT * FROM leads WHERE estado = ? ORDER BY created_at DESC').all('pendiente');
+    return db.prepare('SELECT * FROM leads WHERE estado = ? ORDER BY created_at DESC').all('pendiente').map(decryptLead);
   },
 
   updateLeadEstado(id, estado) {
